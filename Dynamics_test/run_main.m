@@ -20,7 +20,7 @@ input.Controller.gamma = 1;
 input.NoiseRatio = 0.2;
 input.Controller.type = 'LQR_int';
 %% Visualization
-input.PostProc.AnimOn = 0;
+input.PostProc.AnimOn = 1;
 input.PostProc.PlotOn = 0;
 %% Run Simulation for n trials
 numtrial = 40;

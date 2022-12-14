@@ -1,9 +1,19 @@
-freq = load('freq.mat');
-simulation = load('simulation.mat');
-human = load('human.mat');
-freq = freq.freq;
-simulation = simulation.IP_1e6_03_1;
-human = human.human;
+clear all;
+clc;
+close all;
+setpath
+%% Load Data
+subject_type = 'young';
+human_struct = load(sprintf('%s.mat',subject_type));
+freq = human_struct.Frequency;
+human_data = human_struct.IPDataAverage;
+% freq = load('freq.mat');
+% simulation = load('simulation.mat');
+% % eval(sprintf('human.%s',population))';
+% human = load('human.mat');
+% freq = freq.freq;
+% simulation = simulation.IP_1e6_03_1;
+% human = human.human;
 %% 
 g = fittype('a-b*exp(-x/tau)');
 [f0, gof] = fit(freq,human,g,'StartPoint',[[ones(size(freq)), -exp(-freq)]\human; 1])

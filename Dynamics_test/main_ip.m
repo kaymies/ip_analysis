@@ -1,5 +1,6 @@
 function [f, IP_ratio] = main_ip(input)
 %% Model Parameters and Set Up
+setpath
 if nargin ~=0
     TotalMass = input.TotalMass; 
     TotalHeight = input.TotalHeight;    
@@ -22,7 +23,7 @@ else
     coord = 'spatial'; % 'relative','spatial'
 end
 model_param = [TotalMass; TotalHeight];
-addpath([pwd,'\dynamics_models\',pose,'\',model_type,'\',gender,'_',plane]);
+addpath([pwd,'\AutoDerived\',pose,'\',model_type,'\',gender,'_',plane]);
 
 % lumped model parameters
 % switch model_type
@@ -49,8 +50,8 @@ end
 switch model_type
     case 'SIP'
         % q=[q_ankle]
-        q_0 = [0];
-        Dq_0 = [0];
+        q_0 = 0;
+        Dq_0 = 0;
     case 'DIP'
         % q=[q_ankle, q_hip]
         q_0 = [0;0];
@@ -395,7 +396,7 @@ end
     function [A_lin,B_lin,Kg] = getLinearDynamics(model_param,model_type)
         switch model_type
             case 'SIP'
-                q_eq = [0]; Dq_eq = [0];
+                q_eq = 0; Dq_eq = 0;
             case 'DIP'
                 % equilibrium position
                 q_eq = [0; 0]; Dq_eq = [0;0];
@@ -417,5 +418,5 @@ end
         end
         Kg = Jac_G_eq;
     end
-rmpath([pwd,'\dynamics_models\',pose,'\',model_type,'\',gender,'_',plane]);
+rmpath([pwd,'\AutoDerived\',pose,'\',model_type,'\',gender,'_',plane]);
 end
