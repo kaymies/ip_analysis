@@ -7,4 +7,5 @@
 % pwd is the Present Working Directory
 addpath([pwd '/Data'])
 addpath([pwd '/Data/Human'])
+addpath([pwd '/Data/Simulation'])
 addpath([pwd '/Visualization'])

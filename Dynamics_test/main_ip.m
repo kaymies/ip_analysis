@@ -1,4 +1,4 @@
-function [f, IP_ratio] = main_ip(input)
+function [IP_ratio] = main_ip(input)
 %% Model Parameters and Set Up
 setpath
 if nargin ~=0
@@ -11,6 +11,8 @@ if nargin ~=0
     Fs_Hz = input.FreqSampKin; % sampling frequency
     t_f = input.trialDuration;
     coord = input.CoordinateFrame;
+    f = input.Frequency;
+    freq_window = input.FrequencyWindow;
 else
     TotalMass = 71.1; 
     TotalHeight = 1.75;    
@@ -21,6 +23,9 @@ else
     Fs_Hz = 100;
     t_f = 15;
     coord = 'spatial'; % 'relative','spatial'
+    f_i = 0.65; f_int = 0.5; f_end = 5.15;
+	f = f_i:f_int:f_end;
+    freq_window = 0.2;
 end
 model_param = [TotalMass; TotalHeight];
 addpath([pwd,'\AutoDerived\',pose,'\',model_type,'\',gender,'_',plane]);
@@ -167,9 +172,7 @@ end
     end
 
     % Obtain IP at different frequencies (inspired by Marta's code)
-    f_i = 0.55; f_int = 0.5; f_end = 5.05; % starting freq, interval between tested frequencies, frequency range
-%     f_i = 0.5; f_int = 0.2; f_range = 7.4;
-    f = f_i:f_int:f_end; % frequencies
+    f = f - freq_window/2;
     IP = zeros(1,length(f)); % IP
     theta = -MLFx./MLFz;
     theta = theta - mean(theta); % detrend
@@ -177,7 +180,7 @@ end
     cop_ham = MLCOP'.*hamming(length(MLCOP)); % apply Hamming window to CoP data
     theta_ham = theta'.*hamming(length(theta)); % apply Hamming window to the force angle
     for n = 1:length(f) % for all frequencies designated above:
-        [B,A] = butter(2,[f(n) f(n)+.2]/(1/dt/2)); % define the Butterworth filter
+        [B,A] = butter(2,[f(n) f(n)+freq_window]/(1/dt/2)); % define the Butterworth filter
         COP_f = filtfilt(B,A,cop_ham); % apply filter to CoP data
         theta_f = filtfilt(B,A,theta_ham); % apply filter to force angle data
         [coeff,~,~,~,~,~] = pca([COP_f theta_f]); % PCA
