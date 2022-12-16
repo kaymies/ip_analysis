@@ -3,7 +3,7 @@ clear all;
 clc;
 setpath
 %% Load Human Data
-subject_type = 'nonpar_7sub';
+subject_type = 'old_dom';
 human_struct = load(sprintf('%s.mat',subject_type));
 % f_i = 0.65; f_int = 0.5; f_end = 5.15;
 % input.Frequency = f_i:f_int:f_end;
@@ -17,17 +17,17 @@ input.plane = 'sgt';
 input.model = 'DIP';
 input.pose = 'pose_I';
 input.FreqSampKin = 100;
-input.trialDuration = 30;
+input.trialDuration = 60;
 input.CoordinateFrame = 'relative';
 %% Set Controller Parameters
 %-----% MAKE SURE TO CHANGE SIM FILENAME!!! %-----%
-filename = 'En4_0p2_0p2'; 
+filename = 'E4_1p9_3'; %alpha_beta_sigmar
 %-------------------------------------------------%
-input.Controller.alpha = 1e6;
-input.Controller.beta = .4;
+input.Controller.alpha = 1e4;
+input.Controller.beta = 1.9;
+input.NoiseRatio = 4;
 input.Controller.gamma = 1;
-input.NoiseRatio = 0.2;
-input.Controller.type = 'LQR_int';
+input.Controller.type = 'LQR';
 %% Visualization
 input.PostProc.AnimOn = 0;
 input.PostProc.PlotOn = 0;
@@ -54,8 +54,6 @@ set(gca,'Fontsize',15);
 % mean_torque_ratio = mean(torques)
 % std_torque_ratio = std(torques)
 %% Neglect Outliers
-% data = frt_nobeam_sub;
-% data = IP_1en4_02_02;
 [numsim, numf] = size(data);
 meansim = mean(data);
 stdsim = std(data);
@@ -73,7 +71,7 @@ for i = 1:numsim
 end
 meansim = mean(data,'omitnan'); % mean of simulation without outliers
 %% Save File:
-save_sim_files(input,filename,data,meansim,numtrial)
+save_sim_file(input,filename,data,meansim,numtrial)
 %% Plot human vs. simulation
 figure(2);
 plot(human_struct.Frequency,human_struct.IPDataAverage)
@@ -84,7 +82,3 @@ xlabel('Frequency [Hz]')
 ylabel('IP (Fraction of CoM)')
 xlim([0.5 5.3])
 ylim([0 2.5])
-% ave = mean(data);
-% stdev = mean(data);
-% figure;
-% boxplot(data,f)

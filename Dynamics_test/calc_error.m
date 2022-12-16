@@ -3,18 +3,25 @@ clc;
 close all;
 setpath
 %% Load Data
-subject_type = 'young';
+% Human Data
+subject_type = 'nonpar_7sub';
 human_struct = load(sprintf('%s.mat',subject_type));
 freq = human_struct.Frequency;
 human_data = human_struct.IPDataAverage;
-% freq = load('freq.mat');
-% simulation = load('simulation.mat');
-% % eval(sprintf('human.%s',population))';
-% human = load('human.mat');
-% freq = freq.freq;
-% simulation = simulation.IP_1e6_03_1;
-% human = human.human;
-%% 
+human_sd = human_struct.StandardDeviation;
+% Best-Fit Simulation Data
+controller = 'LQR_int_relative';
+file = 'En4_0p2_0p2';
+folder = fullfile('Data','Simulation',controller);
+addpath(folder);
+sim_struct = load(sprintf('%s.mat',file));
+sim_data = sim_struct.DataWithoutOutliers;
+generate_plot(human_struct,sim_struct)
+%% Variance Accounted For (Rika's Method)
+norm_difference = ((sim_data - human_data).^2)./human_data.^2
+norm_variance = (human_sd./human_data).^2
+vaf = 1 - sum(norm_difference)/sum(norm_variance)
+%%
 g = fittype('a-b*exp(-x/tau)');
 [f0, gof] = fit(freq,human,g,'StartPoint',[[ones(size(freq)), -exp(-freq)]\human; 1])
 xx = linspace(0,8,50);

@@ -366,7 +366,6 @@ end
         
         % input noise, multiplier can be changed
         u_noise = 10*randn(q_n,1); % noise size can be determined by you
-%         sigma_r = 0.5; % change this to change noise ratio
         u_noise(1) = sigma_r*u_noise(1);
         u = u_ctrl + u_noise;
         

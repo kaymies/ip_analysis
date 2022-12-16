@@ -1,5 +1,6 @@
-function [] = save_sim_files(input,filename,data,meansim,numtrial)
-folder = fullfile('Data','Simulation',input.Controller.type);
+function [] = save_sim_file(input,filename,data,meansim,numtrial)
+folder_name = sprintf('%s_%s',input.Controller.type,input.CoordinateFrame);
+folder = fullfile('Data','Simulation',folder_name);
 addpath(folder);
 file = sprintf('%s.mat',filename);
 folder = fullfile(folder,file);
@@ -23,6 +24,6 @@ sim_data = struct(field1,value1,field2,value2,field3,value3,field4,value4,...
     field5,value5,field6,value6,field7,value7,field8,value8,field9,value9,...
     field10,value10,field11,value11,field12,value12,field13,value13,...
     field14,value14,field15,value15);
-save(folder, 'sim_data');
+save(folder, '-struct', 'sim_data');
 end
 
