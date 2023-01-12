@@ -1,4 +1,4 @@
-function [] = save_sim_file(input,filename,data,meansim,numtrial)
+function [sim_data] = save_sim_file(input,filename,data,meansim,numtrial)
 folder_name = sprintf('%s_%s',input.Controller.type,input.CoordinateFrame);
 folder = fullfile('Data','Simulation',folder_name);
 addpath(folder);

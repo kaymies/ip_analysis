@@ -71,14 +71,6 @@ for i = 1:numsim
 end
 meansim = mean(data,'omitnan'); % mean of simulation without outliers
 %% Save File:
-save_sim_file(input,filename,data,meansim,numtrial)
+sim_struct = save_sim_file(input,filename,data,meansim,numtrial);
 %% Plot human vs. simulation
-figure(2);
-plot(human_struct.Frequency,human_struct.IPDataAverage)
-hold on
-plot(input.Frequency,meansim)
-legend('human', 'simdata')
-xlabel('Frequency [Hz]')
-ylabel('IP (Fraction of CoM)')
-xlim([0.5 5.3])
-ylim([0 2.5])
+generate_plot(human_struct,sim_struct)
