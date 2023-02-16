@@ -13,16 +13,16 @@ if nargin ~=0
     coord = input.CoordinateFrame;
     f = input.Frequency;
     freq_window = input.FrequencyWindow;
-else
-    TotalMass = 71.1; 
-    TotalHeight = 1.75;    
+else    
+    TotalMass = 87.5; 
+    TotalHeight = 1.67;    
     gender = 'M';
     plane = 'sgt';
     model_type = 'DIP'; % 'SIP','DIP'
     pose = 'pose_I'; % 'pose_T' 'pose_I'
     Fs_Hz = 100;
-    t_f = 15;
-    coord = 'spatial'; % 'relative','spatial'
+    t_f = 60;
+    coord = 'relative'; % 'relative','spatial'
     f_i = 0.65; f_int = 0.5; f_end = 5.15;
 	f = f_i:f_int:f_end;
     freq_window = 0.2;
@@ -77,13 +77,17 @@ if nargin ~=0
     alpha = struct_Controller.alpha;
     beta = struct_Controller.beta;
     gamma = struct_Controller.gamma;
+    kappa = struct_Controller.kappa;
+    eta = struct_Controller.eta;
     noise_ratio = input.NoiseRatio;
 else
     alpha = 1e-4;
     beta = 0.2;
     gamma = 1;
+    kappa = 1;
+    eta = 1;
     noise_ratio = 0.2;
-    struct_Controller.type = 'LQR_int'; % designate controller type used here
+    struct_Controller.type = 'LQR'; % designate controller type used here
 end
 switch model_type
     case 'SIP'
@@ -91,7 +95,10 @@ switch model_type
     case 'DIP'
         param.R = alpha*diag([beta, 1/beta]);
 end
-param.Q = gamma*eye(2*n_q);
+param.Q = gamma*[kappa 0 0 0;
+                 0 1/kappa 0 0;
+                 0 0 eta 0;
+                 0 0 0 1/eta];
 struct_Controller.param = param;
 %% Determine Controller - defined below
 switch struct_Controller.type
@@ -127,13 +134,17 @@ T_state = [1 0 0 0;
            1 1 0 0;
            0 0 1 0;
            0 0 1 1]; 
-       
+bad_parameter = false;       
 for i = 1:N
     t_i = t(i);
     % calculate Dx and output y at time t; also output ankle torque input
     % and ankle noise for graphing purposes later
     torque_i = FuncHandle_Controller(t_i, x_i, struct_Controller.param, model_param, model_type, T, T_state);
     [Dx_i, y_i] = func_Dynamics(t_i, x_i, torque_i, model_param, model_type, noise_ratio); % these functions are all below
+    if anynan(Dx_i)
+        bad_parameter = true;
+        break
+    end
     % log state and output
     switch coord
         case 'spatial'
@@ -158,84 +169,103 @@ end
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %% post process
 % outputs
-    % Angular momentum, CoM, CoP, IP, ground reaction forces    
-    COM_z = zeros(1,N); % vertical CoM
-    MLCOP = zeros(1,N); % CoP
-    MLFx = zeros(1,N); % horizontal ground reactin force
-    MLFz = zeros(1,N); % vertical ground reaction force
-    % renaming component of output y from simulation above
-    for i = 1:N
-        MLCOP(:,i) = y{i}.COP;
-        COM_z(:,i) = y{i}.COM_z;
-        MLFx(:,i) = y{i}.Fx;
-        MLFz(:,i) = y{i}.Fz;
-    end
-
-    % Obtain IP at different frequencies (inspired by Marta's code)
-    f = f - freq_window/2;
-    IP = zeros(1,length(f)); % IP
-    theta = -MLFx./MLFz;
-    theta = theta - mean(theta); % detrend
-    MLCOP = MLCOP - mean(MLCOP); % detrend
-    cop_ham = MLCOP'.*hamming(length(MLCOP)); % apply Hamming window to CoP data
-    theta_ham = theta'.*hamming(length(theta)); % apply Hamming window to the force angle
-    for n = 1:length(f) % for all frequencies designated above:
-        [B,A] = butter(2,[f(n) f(n)+freq_window]/(1/dt/2)); % define the Butterworth filter
-        COP_f = filtfilt(B,A,cop_ham); % apply filter to CoP data
-        theta_f = filtfilt(B,A,theta_ham); % apply filter to force angle data
-        [coeff,~,~,~,~,~] = pca([COP_f theta_f]); % PCA
-        IP(n) = coeff(1,1)/coeff(2,1); % compute IP and store
-    end
-    IP_ratio = IP/mean(COM_z);
-%     mean(COM_z);
-    
-%     torque_rms = [rms(torque(1,:)), rms(torque(2,:)), rms(torque(1,:))/rms(torque(2,:))];
-
-% animation
-if isAnimOn    
-    b_saveanim= 0; 
-    title_ = 'test';
-    t_anim = t(1:100:end); 
-    x_anim = x(:, 1:100:end);
-    postproc_animation(t_anim, x_anim, model_param, model_type, b_saveanim, title_ ); 
-end
-
-% plot
-if isPlotOn
-    % Plot joint angles wrt time
-    figure(1);
-        switch model_type
-            case 'SIP'
-                plot(t, x(1,:),'r');
-                ylabel('Ankle Joint Angle [rad]')
-                xlabel('Time [s]')
-            case 'DIP'
-                plot(t, x(1,:),'r');
-                hold on
-                plot(t,x(2,:),'b');
-                ylabel('Joint Angles [rad]')
-                xlabel('Time [s]')
-                legend('q1','q2')
+    if bad_parameter
+        f = f - freq_window/2;
+        IP_ratio = NaN(1,length(f));
+    else
+        % Angular momentum, CoM, CoP, IP, ground reaction forces    
+        COM_z = zeros(1,N); % vertical CoM
+        MLCOP = zeros(1,N); % CoP
+        MLFx = zeros(1,N); % horizontal ground reactin force
+        MLFz = zeros(1,N); % vertical ground reaction force
+        % renaming component of output y from simulation above
+        for i = 1:N
+            MLCOP(:,i) = y{i}.COP;
+            COM_z(:,i) = y{i}.COM_z;
+            MLFx(:,i) = y{i}.Fx;
+            MLFz(:,i) = y{i}.Fz;
         end
-    % Plot a scatter plot of IP frequency response
-    figure(2);  
-        scatter(f+0.1, IP_ratio,30,'k','filled')      
-        ylabel('IP/CoM')
-        xlabel('Frequency [Hz]')
-    
-    % Example linear fit of theta_f vs. CoP relationship for a given
-    % frequency band
-%     f_start = 7; f_end = f_start + f_int; % which frequency band are you interested in?
-%     [B,A] = butter(2,[f_start f_end]/(1/dt/2)); % define the Butterworth filter
-%     COP_ex = filtfilt(B,A,cop_ham); % apply filter to CoP data
-%     theta_ex = filtfilt(B,A,theta_ham); % apply filter to force angle data
-%     [coeff,~,latent,~,explained,~] = pca([COP_ex theta_ex]); % PCA
-%     slope_ex = coeff(2,1)/coeff(1,1); % compute IP and store
-%     figure(4);
-%         plot(COP_ex, theta_ex, '.', 'Color', uint8([0 0 255]))
-%         ylabel('\theta_f [rad]')
-%         xlabel('CoP [m]')
-end
+
+        % Obtain IP at different frequencies (inspired by Marta's code)
+        f = f - freq_window/2;
+        IP = zeros(1,length(f)); % IP
+        theta = -MLFx./MLFz;
+        theta = theta - mean(theta); % detrend
+        MLCOP = MLCOP - mean(MLCOP); % detrend
+        cop_ham = MLCOP'.*hamming(length(MLCOP)); % apply Hamming window to CoP data
+        theta_ham = theta'.*hamming(length(theta)); % apply Hamming window to the force angle
+        for n = 1:length(f) % for all frequencies designated above:
+            [B,A] = butter(2,[f(n) f(n)+freq_window]/(1/dt/2)); % define the Butterworth filter
+            COP_f = filtfilt(B,A,cop_ham); % apply filter to CoP data
+            theta_f = filtfilt(B,A,theta_ham); % apply filter to force angle data
+            [coeff,~,~,~,~,~] = pca([COP_f theta_f]); % PCA
+            IP(n) = coeff(1,1)/coeff(2,1); % compute IP and store
+        end
+        IP_ratio = IP/mean(COM_z);
+    %     mean(COM_z);
+
+    %     torque_rms = [rms(torque(1,:)), rms(torque(2,:)), rms(torque(1,:))/rms(torque(2,:))];
+
+    % animation
+    if isAnimOn    
+        b_saveanim= 0; 
+        title_ = 'test';
+        t_anim = t(1:100:end); 
+        x_anim = x(:, 1:100:end);
+        postproc_animation(t_anim, x_anim, model_param, model_type, b_saveanim, title_ ); 
+    end
+
+    % plot
+    if isPlotOn
+        % Plot joint angles wrt time
+        figure(1);
+            switch model_type
+                case 'SIP'
+                    plot(t, x(1,:),'b');
+                    ylabel('Ankle Joint Angle [rad]')
+                    xlabel('Time [s]')
+                case 'DIP'
+                    plot(t, x(1,:),'b');
+                    hold on
+                    plot(t,x(2,:),'r');
+                    ylabel('Joint Angles [rad]')
+                    xlabel('Time [s]')
+                    legend('ankle','hip')
+            end
+        figure(2);
+            switch model_type
+                case 'SIP'
+                    plot(t, x(2,:),'b');
+                    ylabel('Ankle Joint Angular Velocity [rad/s]')
+                    xlabel('Time [s]')
+                case 'DIP'
+                    plot(t,x(4,:),'r');
+                    hold on
+                    plot(t, x(3,:),'b');
+                    ylabel('Joint Angular Velocity [rad/s]')
+                    xlabel('Time [s]')
+                    legend('ankle','hip')
+            end
+        % Plot a scatter plot of IP frequency response
+        figure(3);  
+            scatter(f+0.1, IP_ratio,30,'k','filled')      
+            ylabel('IP/CoM')
+            xlabel('Frequency [Hz]')
+
+        % Example linear fit of theta_f vs. CoP relationship for a given
+        % frequency band
+    %     f_start = 7; f_end = f_start + f_int; % which frequency band are you interested in?
+    %     [B,A] = butter(2,[f_start f_end]/(1/dt/2)); % define the Butterworth filter
+    %     COP_ex = filtfilt(B,A,cop_ham); % apply filter to CoP data
+    %     theta_ex = filtfilt(B,A,theta_ham); % apply filter to force angle data
+    %     [coeff,~,latent,~,explained,~] = pca([COP_ex theta_ex]); % PCA
+    %     slope_ex = coeff(2,1)/coeff(1,1); % compute IP and store
+    %     figure(4);
+    %         plot(COP_ex, theta_ex, '.', 'Color', uint8([0 0 255]))
+    %         ylabel('\theta_f [rad]')
+    %         xlabel('CoP [m]')
+    end
+    end
 %% sub function definitions
 % Controllers 
 % (1) Joint stiffness %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -250,8 +280,10 @@ end
         switch coord
             case 'spatial'
                 R = T*param.R*T.';
+%                 Q = T_state.'\Q/T_state;
             case 'relative'
                 R = param.R;
+%                 Q = param.Q;
         end
 %         persistent K_rika;
         persistent K_lqr; % calculate K_lqr only once for all time
@@ -275,21 +307,23 @@ end
 %             B_s_norm = norm(B_s)
 %             B_a_norm = norm(B_a)
 %             K_lqr = [4*K_lqr(1:2,1:2), 2*K_lqr(1:2,3:end)]; % nx stiffness/damping matrix
-%             % compute open-loop poles
-%             [V_op,D_op] = eig(A_lin); % linearized system open loop eigenstructure
-%             D_op_hz = diag(D_op)./(2*pi); % open loop eigenvalues in Hz
-%             % compute closed-loop poles
-%             [V_cl,D_cl] = eig(A_lin-B_lin*K_lqr);
-%             D_cl_hz = diag(D_cl)./(2*pi)
-%             % plot open/closed loop poles
-%             figure; 
-%             plot(real(diag(D_op))./(2*pi),imag(diag(D_op))./(2*pi),'x','MarkerSize',10,'LineWidth',3,'MarkerEdgeColor','b')
-%             hold on
-%             plot(real(diag(D_cl))./(2*pi),imag(diag(D_cl))./(2*pi),'+','MarkerSize',10,'LineWidth',3,'MarkerEdgeColor','r')
-%             legend('Open Loop Poles','Closed Loop Poles')
-%             hold off
-%             xlabel('Real [Hz]')
-%             ylabel('Imaginary [Hz]')
+            % compute open-loop poles
+            [~,D_op] = eig(A_lin); % linearized system open loop eigenstructure
+            % compute closed-loop poles
+            [~,D_cl] = eig(A_lin-B_lin*K_lqr);
+            if isPlotOn
+                % plot open/closed loop poles
+                figure(4);
+                sys_open = zpk([],diag(D_op)./(2*pi)',1);
+                sys_closed = zpk([],diag(D_cl)./(2*pi)',1);
+                h = pzplot(sys_open,'b',sys_closed,'r');
+                xlabel('Real Axis')
+                ylabel('Imaginary Axis')
+                legend('Open Loop','Closed Loop')
+                h.AxesGrid.XUnits = 'Hz';
+                h.AxesGrid.YUnits = 'Hz';
+                grid on
+            end
 
 %             % Pole Placement
 %             zeta = 0.5; % damping ratio
@@ -336,7 +370,9 @@ end
     %--Rika/Federico Intermittent K--%
         [~,~,Kg] = getLinearDynamics(model_param, model_type);
         if (abs(x(1)) < 1*pi/180 ) && (abs(x(2)) < 1*pi/180 )
-          K(1:2,1:2) = -Kg;            
+          K(1:2,1:2) = -Kg;
+%           K(:,3:4) = K(:,3:4).*100;
+%           K
         end
         switch coord
             case 'spatial'

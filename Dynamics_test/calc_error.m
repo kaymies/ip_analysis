@@ -10,8 +10,8 @@ freq = human_struct.Frequency;
 human_data = human_struct.IPDataAverage;
 human_sd = human_struct.StandardDeviation;
 % Best-Fit Simulation Data
-controller = 'LQR_int_relative';
-file = 'En4_0p2_0p2';
+controller = 'LQR_relative';
+file = 'E4_1p9_3';
 folder = fullfile('Data','Simulation',controller);
 addpath(folder);
 sim_struct = load(sprintf('%s.mat',file));
