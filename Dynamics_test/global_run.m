@@ -80,6 +80,4 @@ for a = 1:length(alpha)
     end
 end
 toc
-folder = fullfile('Data','Error');
-addpath(folder);
-save(folder, '-struct','rmse_nonpar7sub_lqr_6params');
+save_error_file(input,subject_type,num_trial,params,'rmse20230216',rmse_nonpar7sub_lqr_6params)
