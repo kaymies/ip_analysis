@@ -28,7 +28,7 @@ else
     freq_window = 0.2;
 end
 model_param = [TotalMass; TotalHeight];
-addpath([pwd,'\AutoDerived\',pose,'\',model_type,'\',gender,'_',plane]);
+addpath([pwd,'/AutoDerived/',pose,'/',model_type,'/',gender,'_',plane]);
 
 % lumped model parameters
 % switch model_type
@@ -81,12 +81,12 @@ if nargin ~=0
     eta = struct_Controller.eta;
     noise_ratio = input.NoiseRatio;
 else
-    alpha = 1e-4;
-    beta = 0.2;
+    alpha = 1;
+    beta = 1;
     gamma = 1;
     kappa = 1;
-    eta = 1;
-    noise_ratio = 0.2;
+    eta = 1e-5;
+    noise_ratio = 1;
     struct_Controller.type = 'LQR'; % designate controller type used here
 end
 switch model_type
@@ -231,6 +231,7 @@ end
                     ylabel('Joint Angles [rad]')
                     xlabel('Time [s]')
                     legend('ankle','hip')
+                    ylim([-0.02 0.02])
             end
         figure(2);
             switch model_type
@@ -239,18 +240,20 @@ end
                     ylabel('Ankle Joint Angular Velocity [rad/s]')
                     xlabel('Time [s]')
                 case 'DIP'
-                    plot(t,x(4,:),'r');
+                    plot(t,x(3,:),'b');
                     hold on
-                    plot(t, x(3,:),'b');
+                    plot(t, x(4,:),'r');
                     ylabel('Joint Angular Velocity [rad/s]')
                     xlabel('Time [s]')
                     legend('ankle','hip')
+                    ylim([-0.2 0.2])
             end
         % Plot a scatter plot of IP frequency response
         figure(3);  
             scatter(f+0.1, IP_ratio,30,'k','filled')      
             ylabel('IP/CoM')
             xlabel('Frequency [Hz]')
+            ylim([0 2.5])
 
         % Example linear fit of theta_f vs. CoP relationship for a given
         % frequency band
@@ -456,5 +459,5 @@ end
         end
         Kg = Jac_G_eq;
     end
-rmpath([pwd,'\AutoDerived\',pose,'\',model_type,'\',gender,'_',plane]);
+rmpath([pwd,'/AutoDerived/',pose,'/',model_type,'/',gender,'_',plane]);
 end

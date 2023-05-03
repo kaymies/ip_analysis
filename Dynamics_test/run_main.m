@@ -3,7 +3,7 @@ clear all;
 clc;
 setpath
 %% Load Human Data
-subject_type = 'nonpar_7sub';
+subject_type = 'paretic_7sub';
 human_struct = load(sprintf('%s.mat',subject_type));
 % f_i = 0.65; f_int = 0.5; f_end = 5.15;
 % input.Frequency = f_i:f_int:f_end;
@@ -21,30 +21,23 @@ input.trialDuration = 60;
 input.CoordinateFrame = 'relative';
 %% Set Controller Parameters
 %-----% MAKE SURE TO CHANGE SIM FILENAME!!! %-----%
-filename = 'En4_0p2_0p2'; %alpha_beta_sigmar
-folder_name = 'LQR_relative_varyQ';
+filename = 'E6_2_1p5'; %alpha_beta_sigmar
+folder_name = 'LQR_relative';
 %-------------------------------------------------%
-input.Controller.alpha = 1e-4;
-input.Controller.beta = 0.2;
-input.NoiseRatio = 0.2;
-input.Controller.gamma = 5;
+input.Controller.alpha = 1e6;
+input.Controller.beta = 2;
+input.NoiseRatio = 1.5;
+input.Controller.gamma = 1;
+input.Controller.kappa = 11;
+input.Controller.eta = 1;
 input.Controller.type = 'LQR';
 %% Visualization
 input.PostProc.AnimOn = 0;
 input.PostProc.PlotOn = 0;
 %% Run Simulation for n trials
 numtrial = 40;
+[data] = compute_ip(input,numtrial);
 
-data = zeros(numtrial,length(input.Frequency));
-% torques = zeros(numtrial, 3);
-% torques(1,:) = torque_rms;
-for i = 1:numtrial
-    close all;
-    [IP_ratio] = main_ip(input);
-    data(i,:) = IP_ratio;
-%     torques(i,:) = torque_rms;
-    i
-end
 figure; boxplot(data,input.Frequency)
 xlabel('Frequency [Hz]')
 ylabel('IP (Fraction of CoM)')
@@ -55,26 +48,15 @@ set(gca,'Fontsize',15);
 % mean_torque_ratio = mean(torques)
 % std_torque_ratio = std(torques)
 %% Neglect Outliers
-[numsim, numf] = size(data);
-meansim = mean(data);
-stdsim = std(data);
-lowBound = meansim - 3*stdsim;
-upBound = meansim + 3*stdsim;
-for i = 1:numsim
-    for j = 1:numf
-        if data(i,j) < lowBound(j)
-            data(i,j) = NaN;
-        end
-        if data(i,j) > upBound(j)
-            data(i,j) = NaN;
-        end 
-    end
-end
+[data] = neglect_outliers(data);
 meansim = mean(data,'omitnan'); % mean of simulation without outliers
+stdsim = std(data,'omitnan');
 %% Save File:
-sim_struct = save_sim_file(input,filename,data,meansim,numtrial,folder_name);
+sim_struct = save_sim_file(input,filename,data,meansim,numtrial,folder_name,stdsim);
 %% Plot human vs. simulation
 generate_plot(human_struct,sim_struct)
+%% Error
+rmse = sqrt(mean((meansim-human_struct.IPDataAverage).^2))
 %% Plot IP Distribution
 % for j = 1:length(input.Frequency)
 %     figure(3)

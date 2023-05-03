@@ -1,4 +1,4 @@
-function [sim_data] = save_sim_file(input,filename,data,meansim,numtrial,folder_name)
+function [sim_data] = save_sim_file(input,filename,data,meansim,numtrial,folder_name,stdsim)
 % folder_name = sprintf('%s_%s',input.Controller.type,input.CoordinateFrame);
 folder = fullfile('Data','Simulation',folder_name);
 addpath(folder);
@@ -21,10 +21,11 @@ field12 = 'Frequency'; value12 = input.Frequency;
 field13 = 'FrequencyWindow'; value13 = input.FrequencyWindow;
 field14 = 'Data'; value14 = data;
 field15 = 'DataWithoutOutliers'; value15 = meansim;
+field17 = 'StandardDeviation'; value17 = stdsim;
 sim_data = struct(field1,value1,field2,value2,field3,value3,field16,value16,field4,value4,...
     field5,value5,field6,value6,field7,value7,field8,value8,field9,value9,...
     field10,value10,field11,value11,field12,value12,field13,value13,...
-    field14,value14,field15,value15);
+    field14,value14,field15,value15,field17,value17);
 save(folder, '-struct', 'sim_data');
 end
 

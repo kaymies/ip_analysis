@@ -23,12 +23,12 @@ input.Controller.type = 'LQR';
 input.PostProc.AnimOn = 0;
 input.PostProc.PlotOn = 0;
 %% Create empty arrays to log errors
-params.alpha = [1e-4,1e6];
-params.beta = [0.3,2];
-params.sigma_r = [0.9,10];
-params.gamma = [0.1,35];
-params.kappa = [1e8,1e-5];
-params.eta = [1e2,1e-1];
+params.alpha = [1e-4,1e-3,1e-2,1,1e6]; %5
+params.beta = [0.1,0.5,1,2]; %4
+params.sigma_r = [0.01,0.5,1,2,5]; %5
+params.gamma = [0.1,1,10,35]; %4
+params.kappa = [1e-5,1e-4,1e-3,1e-2,1e-1,1,10,100,1e3,1e4,1e5]; %11
+params.eta = [1e-1,1,10,1e2]; %4
 
 alpha = params.alpha;
 beta = params.beta;
@@ -43,17 +43,19 @@ eta = params.eta;
 % beta = [0.01,0.05,0.1,0.2,0.3,0.4,0.5,0.6,0.7,0.8,0.9,1,1.1,1.2,1.3,1.4,1.5,1.6,1.7,1.8,1.9,2];
 % beta = [5, 10];
 % sigma_r = [0.01,0.05,0.1,0.2,0.3,0.4,0.5,0.6,0.7,0.8,0.9,1,1.1,1.2,1.3,1.4,1.5,1.6,1.7,1.8,1.9,2,3,5,10,15,20];
-rmse_nonpar7sub_lqr_6params = zeros(length(alpha),length(beta),length(sigma_r),...
-    length(gamma),length(kappa),length(eta));
+% rmse_nonpar7sub_lqr_6params = zeros(length(alpha),length(beta),length(sigma_r),...
+%     length(gamma),length(kappa),length(eta));\
+load('C:\Users\kaymi\Dropbox (MIT)\Balance Project\Intersection Point Analysis\ip_analysis\Dynamics_test\Data\Error\rmse20230223_3.mat')
+rmse_nonpar7sub_lqr_6params = Error;
 %% Run Simulation for n trials across different parameter values
 num_trial = 40;
-count = 1;
+count = 0;
 tic
-for a = 1:length(alpha)
-    for b = 1:length(beta)
-        for s = 1:length(sigma_r)
-            for g = 1:length(gamma)
-                for k = 1:length(kappa)
+for a = 2%:length(alpha)
+    for b = 3:length(beta)
+        for s = 4:length(sigma_r)
+            for g = 4:length(gamma)
+                for k = 6:length(kappa)
                     for e = 1:length(eta)
                         input.Controller.alpha = alpha(a);
                         input.Controller.beta = beta(b);
@@ -80,4 +82,4 @@ for a = 1:length(alpha)
     end
 end
 toc
-save_error_file(input,subject_type,num_trial,params,'rmse20230216',rmse_nonpar7sub_lqr_6params)
+save_error_file(input,subject_type,num_trial,params,'rmse20230227_2',rmse_nonpar7sub_lqr_6params)
