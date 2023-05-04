@@ -3,17 +3,17 @@ clear all;
 clc;
 setpath;
 %% Load Error
-error = load("rmse20230301.mat");
+error = load("rmse_old_20230503.mat");
 error = error.Error;
 % rmse_avb = root_mean_nonpar7sub_lqr_spatial2; %each 2D array is alpha v beta, for given sigma
 % rmse_avs = permute(rmse_avb,[1 3 2]); %each 2D array is alpha v sigma, for given beta
 % rmse_bvs = permute(rmse_avb,[2 3 1]); %each 2D array is beta v sigma, for given alpha
 %% Find Minimum RMSE
 [v_min,loc_min] = min(error(:));
-[a_min,b_min,s_min,g_min,k_min,e_min] = ind2sub(size(error),loc_min);
+[b_min,s_min] = ind2sub(size(error),loc_min);
 % [v_max,loc_max] = max(error(:));
 [v_max,loc_max] = max(error(find(error(:)<5)));
-[a_max,b_max,s_max,g_max,k_max,e_max] = ind2sub(size(error),loc_max);
+[b_max,s_max] = ind2sub(size(error),loc_max);
 % [v_min,loc_min] = min(rmse_avb(:));
 % [a_min,b_min,s_min] = ind2sub(size(rmse_avb),loc_min);
 % [v_max,loc_max] = max(rmse_avb(:));
