@@ -1,4 +1,4 @@
-function [IP_ratio] = main_ip(input)
+function [IP_ratio,torque_rms] = main_ip(input)
 %% Model Parameters and Set Up
 setpath
 if nargin ~=0
@@ -14,16 +14,16 @@ if nargin ~=0
     f = input.Frequency;
     freq_window = input.FrequencyWindow;
 else    
-    TotalMass = 87.5; 
-    TotalHeight = 1.67;    
+    TotalMass = 68.5; 
+    TotalHeight = 1.66;    
     gender = 'M';
     plane = 'sgt';
     model_type = 'DIP'; % 'SIP','DIP'
-    pose = 'pose_I'; % 'pose_T' 'pose_I'
-    Fs_Hz = 100;
-    t_f = 60;
+    pose = 'pose_T'; % 'pose_T' 'pose_I'
+    Fs_Hz = 500;
+    t_f = 30;
     coord = 'relative'; % 'relative','spatial'
-    f_i = 0.65; f_int = 0.5; f_end = 5.15;
+    f_i = 0.5; f_int = 0.2; f_end = 7.9;
 	f = f_i:f_int:f_end;
     freq_window = 0.2;
 end
@@ -31,16 +31,16 @@ model_param = [TotalMass; TotalHeight];
 addpath([pwd,'/AutoDerived/',pose,'/',model_type,'/',gender,'_',plane]);
 
 % lumped model parameters
-% switch model_type
-%     case 'SIP'
-%         [m_1,c_1,j_1,L_1] = auto_LumpParam(model_param);
-%         c_1 = c_1(2); L_1 = L_1(2);
-%         [m_1,c_1,j_1,L_1];
-%     case 'DIP'
-%         [m_1,c_1,j_1,L_1,m_2,c_2,j_2,L_2] = auto_LumpParam(model_param);
+switch model_type
+    case 'SIP'
+        [m_1,c_1,j_1,L_1] = auto_LumpParam(model_param);
+        c_1 = c_1(2); L_1 = L_1(2);
+        [m_1,c_1,j_1,L_1];
+    case 'DIP'
+        [m_1,c_1,j_1,L_1,m_2,c_2,j_2,L_2] = auto_LumpParam(model_param);
 %         c_1 = c_1(2); c_2 = c_2(2); L_1 = L_1(2); L_2 = L_2(2);
-%         [m_1,c_1,j_1,L_1,m_2,c_2,j_2,L_2];
-% end
+        [m_1,c_1,j_1,L_1,m_2,c_2,j_2,L_2];
+end
 %% Visualization
 if nargin ~=0 % if there is an input into the function  
     isAnimOn = input.PostProc.AnimOn;
@@ -81,12 +81,12 @@ if nargin ~=0
     eta = struct_Controller.eta;
     noise_ratio = input.NoiseRatio;
 else
-    alpha = 1;
-    beta = 1;
+    alpha = 1e6;
+    beta = 0.2;
     gamma = 1;
     kappa = 1;
-    eta = 1e-5;
-    noise_ratio = 1;
+    eta = 1;
+    noise_ratio = 0.1;
     struct_Controller.type = 'LQR'; % designate controller type used here
 end
 switch model_type
@@ -124,7 +124,7 @@ N = length(t);  % sample number
 % memory allocation 
 x = zeros(n_x, N);    % 4xN matrix - trajectory 
 y = cell(1, N);       % 1x Nt structures - output 
-% torque = zeros(2,N); % 2xN matrix - ankle, hip torque
+torque = zeros(2,N); % 2xN matrix - ankle, hip torque
 
 % run simulation
 x_i = x_0; % initialize state
@@ -148,10 +148,10 @@ for i = 1:N
     % log state and output
     switch coord
         case 'spatial'
-%             torque(:,i) = T.'\torque_i; % spatial torque
+            torque(:,i) = T.'\torque_i; % spatial torque
             x(:, i) = T_state*x_i; % spatial states
         case 'relative'
-%             torque(:,i) = torque_i;
+            torque(:,i) = torque_i;
             x(:, i) = x_i;
     end
     y{i} = y_i;
@@ -204,7 +204,7 @@ end
         IP_ratio = IP/mean(COM_z);
     %     mean(COM_z);
 
-    %     torque_rms = [rms(torque(1,:)), rms(torque(2,:)), rms(torque(1,:))/rms(torque(2,:))];
+        torque_rms = [rms(torque(1,:)), rms(torque(2,:)), rms(torque(1,:))/rms(torque(2,:))];
 
     % animation
     if isAnimOn    

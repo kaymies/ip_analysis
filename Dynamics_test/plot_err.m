@@ -19,17 +19,17 @@ error = error.Error;
 % [v_max,loc_max] = max(rmse_avb(:));
 % [i_max,j_max,k_max] = ind2sub(size(rmse_avb),loc_max);
 %% Parameters
-alpha = [1e-4,1e-3,1e-2,1,1e6]; %5
-beta = [0.1,0.5,1,2]; %4
-sigma_r = [0.01,0.5,1,2,5]; %5
-gamma = [0.1,1,10,35]; %4
-kappa = [1e-5,1e-4,1e-3,1e-2,1e-1,1,10,100,1e3,1e4,1e5]; %11
-eta = [1e-1,1,10,1e2]; %4
+% alpha = [1e-4,1e-3,1e-2,1,1e6]; %5
+beta = [0.01,0.05,0.1,0.2,0.3,0.4,0.5,0.6,0.7,0.8,0.9,1,1.1,1.2,1.3,1.4,1.5,1.6,1.7,1.8,1.9,2];
+sigma_r = [0.01,0.05,0.1,0.2,0.3,0.4,0.5,0.6,0.7,0.8,0.9,1,1.1,1.2,1.3,1.4,1.5,1.6,1.7,1.8,1.9,2,3,5,10,15,20];
+% gamma = [0.1,1,10,35]; %4
+% kappa = [1e-5,1e-4,1e-3,1e-2,1e-1,1,10,100,1e3,1e4,1e5]; %11
+% eta = [1e-1,1,10,1e2]; %4
 
-best_params = [alpha(a_min), beta(b_min), sigma_r(s_min), gamma(g_min),...
-    kappa(k_min), eta(e_min)] %minimum error parameters
-worst_params = [alpha(a_max), beta(b_max), sigma_r(s_max), gamma(g_max),...
-    kappa(k_max), eta(e_max)] %maximum error parameters
+best_params = [beta(b_min), sigma_r(s_min)]%, gamma(g_min),...
+%     kappa(k_min), eta(e_min)] %minimum error parameters
+worst_params = [beta(b_max), sigma_r(s_max)]%, gamma(g_max),...
+%     kappa(k_max), eta(e_max)] %maximum error parameters
 %% Heatmap RMSE
 % % crange = [v_min v_max];
 % crange = [0.025 1.35];

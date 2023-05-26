@@ -7,7 +7,7 @@ clc; close all;
 clear; 
 
 %% Parameters
-gender = 'M';
+gender = 'F';
 plane = 'sgt';
 syms totalHeight totalMass positive
 % parameters
