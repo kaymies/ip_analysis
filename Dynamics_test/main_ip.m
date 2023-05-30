@@ -172,6 +172,7 @@ end
     if bad_parameter
         f = f - freq_window/2;
         IP_ratio = NaN(1,length(f));
+        torque_rms = zeros([1,3]);
     else
         % Angular momentum, CoM, CoP, IP, ground reaction forces    
         COM_z = zeros(1,N); % vertical CoM
