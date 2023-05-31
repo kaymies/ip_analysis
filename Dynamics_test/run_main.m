@@ -3,30 +3,30 @@ clear all;
 clc;
 setpath
 %% Load Human Data
-subject_type = 'marta_sgt_beam';
+subject_type = 'duarte_old';
 human_struct = load(sprintf('%s.mat',subject_type));
 % f_i = 0.65; f_int = 0.5; f_end = 5.15;
 % input.Frequency = f_i:f_int:f_end;
 input.Frequency = human_struct.Frequency;
 input.FrequencyWindow = 0.2;
 %% Set Model Parameters
-input.TotalMass = human_struct.MeanMass_kg;
-input.TotalHeight = human_struct.MeanHeight_m;  
+input.TotalMass = 68.7;
+input.TotalHeight = 1.61;  
 input.gender = 'M';
 input.plane = 'sgt';
 input.model = 'DIP';
-input.pose = 'pose_T';
-input.FreqSampKin = 500;
-input.trialDuration = 30;
+input.pose = 'pose_I';
+input.FreqSampKin = 100;
+input.trialDuration = 60;
 input.CoordinateFrame = 'relative';
 %% Set Controller Parameters
 %-----% MAKE SURE TO CHANGE SIM FILENAME!!! %-----%
-filename = 'E6_0p3_1p6'; %alpha_beta_sigmar
+filename = 'test'; %alpha_beta_sigmar
 folder_name = 'LQR_relative';
 %-------------------------------------------------%
 input.Controller.alpha = 1e6;
-input.Controller.beta = 0.3;
-input.NoiseRatio = 1.6;
+input.Controller.beta = 0.2;
+input.NoiseRatio = 0.8;
 input.Controller.gamma = 1;
 input.Controller.kappa = 1;
 input.Controller.eta = 1;
