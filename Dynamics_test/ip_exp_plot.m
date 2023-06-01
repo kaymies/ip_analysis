@@ -3,16 +3,19 @@ clear all;
 clc;
 setpath;
 %%
-subject_type1 = 'nonpar_7sub';
-subject_type2 = 'paretic_7sub';
-nonpar = load(sprintf('%s.mat',subject_type1));
-paretic = load(sprintf('%s.mat',subject_type2));
-young = load(sprintf('%s.mat','young_ave'));
-freq = nonpar.Frequency;
-%% Neglect Outliers (Human)
-mean_nonpar = nonpar.IPDataAverage;
-mean_paretic = paretic.IPDataAverage;
+d1 = load(sprintf('%s.mat','duarte_old'));
+d2 = load(sprintf('%s.mat','duarte_young'));
+d3 = load(sprintf('%s.mat','gruben2019'));
+d4 = load(sprintf('%s.mat','young_ave'));
 %% Plot
+figure();
+plot(d1.Frequency,d1.IPDataAverage)
+hold on
+plot(d2.Frequency,d2.IPDataAverage)
+plot(d3.Frequency,d3.IPDataAverage)
+plot(d4.Frequency,d4.IPDataAverage)
+legend('Duarte Old','Duarte Young','Gruben2019','Previous Young')
+
 std_nonpar = nonpar.StandardDeviation;
 std_paretic = paretic.StandardDeviation;
 up_nonpar = mean_nonpar + std_nonpar;

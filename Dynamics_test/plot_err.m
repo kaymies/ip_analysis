@@ -3,8 +3,10 @@ clear all;
 clc;
 setpath;
 %% Load Error
-error = load("rmse_old_20230503.mat");
+error = load("rmse_old_20230526.mat");
 error = error.Error;
+% error = error.root_mean_young(11,:,:);
+% error = reshape(error,[22,25]);
 % rmse_avb = root_mean_nonpar7sub_lqr_spatial2; %each 2D array is alpha v beta, for given sigma
 % rmse_avs = permute(rmse_avb,[1 3 2]); %each 2D array is alpha v sigma, for given beta
 % rmse_bvs = permute(rmse_avb,[2 3 1]); %each 2D array is beta v sigma, for given alpha
@@ -15,45 +17,47 @@ error = error.Error;
 [v_max,loc_max] = max(error(find(error(:)<5)));
 [b_max,s_max] = ind2sub(size(error),loc_max);
 % [v_min,loc_min] = min(rmse_avb(:));
-% [a_min,b_min,s_min] = ind2sub(size(rmse_avb),loc_min);
+% [a_min,b_min,s_min] = ind2sub(size(error),loc_min);
 % [v_max,loc_max] = max(rmse_avb(:));
-% [i_max,j_max,k_max] = ind2sub(size(rmse_avb),loc_max);
+% [i_max,j_max,k_max] = ind2sub(size(error),loc_max);
 %% Parameters
 % alpha = [1e-4,1e-3,1e-2,1,1e6]; %5
+% beta = [0.01,0.05,0.1,0.2,0.3,0.4,0.5,0.6,0.7,0.8,0.9,1,1.1,1.2,1.3,1.4,1.5,1.6,1.7,1.8,1.9,2];
+% sigma = [0.01,0.05,0.1,0.2,0.3,0.4,0.5,0.6,0.7,0.8,0.9,1,1.1,1.2,1.3,1.4,1.5,1.6,1.7,1.8,1.9,2,3,5,10,15,20];
+% alpha = logspace(-4,6,num_alpha);
 beta = [0.01,0.05,0.1,0.2,0.3,0.4,0.5,0.6,0.7,0.8,0.9,1,1.1,1.2,1.3,1.4,1.5,1.6,1.7,1.8,1.9,2];
-sigma_r = [0.01,0.05,0.1,0.2,0.3,0.4,0.5,0.6,0.7,0.8,0.9,1,1.1,1.2,1.3,1.4,1.5,1.6,1.7,1.8,1.9,2,3,5,10,15,20];
+sigma = [0.01,0.05,0.1,0.2,0.3,0.4,0.5,0.6,0.7,0.8,0.9,1,1.1,1.2,1.3,1.4,1.5,1.6,1.7,1.8,1.9,2,3,5,10,15,20];
 % gamma = [0.1,1,10,35]; %4
 % kappa = [1e-5,1e-4,1e-3,1e-2,1e-1,1,10,100,1e3,1e4,1e5]; %11
 % eta = [1e-1,1,10,1e2]; %4
 
-best_params = [beta(b_min), sigma_r(s_min)]%, gamma(g_min),...
+best_params = [beta(b_min), sigma(s_min)]%, gamma(g_min),...
 %     kappa(k_min), eta(e_min)] %minimum error parameters
-worst_params = [beta(b_max), sigma_r(s_max)]%, gamma(g_max),...
+worst_params = [beta(b_max), sigma(s_max)]%, gamma(g_max),...
 %     kappa(k_max), eta(e_max)] %maximum error parameters
 %% Heatmap RMSE
-% % crange = [v_min v_max];
-% crange = [0.025 1.35];
-% % For given alpha:
-% for a = 1:length(alpha)
-%     figure();
-%     heatmap(round(sigma,2),round(beta,2),rmse_bvs(:,:,a),'Colormap',parula,'ColorLimits',crange) % first 2 entries is column, row
-%     xlabel('\sigma_r');
-%     ylabel('\beta')
-% end
-% % For given beta:
-% for b = 1:length(beta)
-%     figure();
-%     heatmap(round(sigma,2),alpha,rmse_avs(:,:,b),'Colormap',jet,'ColorLimits',crange) % first 2 entries is column, row
-%     xlabel('\sigma_r');
-%     ylabel('\alpha')
-% end
-% % For given sigma_r:
-% for s = 1:length(sigma)
-%     figure();
-%     heatmap(round(beta,2),alpha,rmse_avb(:,:,s),'Colormap',jet,'ColorLimits',crange) % first 2 entries is column, row
-%     xlabel('\beta');
-%     ylabel('\alpha')
-% end
+crange = [v_min v_max];
+% For given alpha:
+for a = 1:length(alpha)
+    figure();
+    heatmap(round(sigma,2),round(beta,2),rmse_bvs(:,:,a),'Colormap',parula,'ColorLimits',crange) % first 2 entries is column, row
+    xlabel('\sigma_r');
+    ylabel('\beta')
+end
+% For given beta:
+for b = 1:length(beta)
+    figure();
+    heatmap(round(sigma,2),alpha,rmse_avs(:,:,b),'Colormap',jet,'ColorLimits',crange) % first 2 entries is column, row
+    xlabel('\sigma_r');
+    ylabel('\alpha')
+end
+% For given sigma_r:
+for s = 1:length(sigma)
+    figure();
+    heatmap(round(beta,2),alpha,rmse_avb(:,:,s),'Colormap',jet,'ColorLimits',crange) % first 2 entries is column, row
+    xlabel('\beta');
+    ylabel('\alpha')
+end
 %% RMSE Sensitivity
 % root_mean_nonpar = root_mean_nonpar7sub_lqr_spatial;
 [~,loc_min] = min(root_mean(:));
