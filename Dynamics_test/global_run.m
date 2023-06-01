@@ -83,5 +83,5 @@ end
 toc
 save_error_file(input,subject_type,num_trial,params,'rmse_martasgtground_20230601',rmse)
 save_error_file(input,subject_type,num_trial,params,'diff_martasgtground_20230601',diff)
-save_error_file(input,subject_type,num_trial,params,'diff_highfreq_martasgtground_20230601',diff_lowfreq)
+save_error_file(input,subject_type,num_trial,params,'diff_lowfreq_martasgtground_20230601',diff_lowfreq)
 save_error_file(input,subject_type,num_trial,params,'diff_highfreq_martasgtground_20230601',diff_highfreq)
