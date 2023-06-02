@@ -3,7 +3,7 @@ clear all;
 clc;
 setpath
 %% Load Human Data
-subject_type = 'duarte_old';
+subject_type = 'marta_sgt_ground';
 human_struct = load(sprintf('%s.mat',subject_type));
 % f_i = 0.65; f_int = 0.5; f_end = 5.15;
 % input.Frequency = f_i:f_int:f_end;
@@ -15,10 +15,10 @@ input.TotalHeight = 1.61;
 input.gender = 'M';
 input.plane = 'sgt';
 input.model = 'DIP';
-input.pose = 'pose_I';
-input.FreqSampKin = 100;
-input.trialDuration = 60;
-input.CoordinateFrame = 'relative';
+input.pose = 'pose_T';
+% input.FreqSampKin = 100;
+% input.trialDuration = 60;
+% input.CoordinateFrame = 'relative';
 %% Set Controller Parameters
 %-----% MAKE SURE TO CHANGE SIM FILENAME!!! %-----%
 filename = 'test'; %alpha_beta_sigmar
@@ -31,12 +31,16 @@ input.Controller.gamma = 1;
 input.Controller.kappa = 1;
 input.Controller.eta = 1;
 input.Controller.type = 'LQR';
+input.simSensorNoiseRatio = 1;
+input.simMotorNoise = 10;
+input.simSensorNoise = 0;
+input.Controller.param.delay =0; % 2023-05-18
 %% Visualization
 input.PostProc.AnimOn = 0;
 input.PostProc.PlotOn = 0;
 %% Run Simulation for n trials
-numtrial = 40;
-[data,torques] = compute_ip(input,numtrial);
+numtrial = 1;
+[data] = compute_ip(input,numtrial);
 
 figure; boxplot(data,input.Frequency)
 xlabel('Frequency [Hz]')
@@ -45,8 +49,8 @@ ylim([0 2.5])
 % title('gamma = 1e6, beta = 2, t = 30 sec, freq = 100 Hz, 0.1x noise')
 set(gca,'Fontsize',15);
 
-mean_torque_ratio = mean(torques)
-std_torque_ratio = std(torques)
+% mean_torque_ratio = mean(torques)
+% std_torque_ratio = std(torques)
 %% Neglect Outliers
 [data] = neglect_outliers(data);
 meansim = mean(data,'omitnan'); % mean of simulation without outliers
