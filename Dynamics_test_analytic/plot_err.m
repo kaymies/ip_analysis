@@ -3,7 +3,7 @@ clear all;
 clc;
 setpath;
 %% Load Error
-error = load("rmse_young_20230530.mat");
+error = load("trial.mat");
 error = error.Error;
 % error = error.root_mean_young(11,:,:);
 % error = reshape(error,[22,25]);
@@ -37,6 +37,10 @@ worst_params = [beta(b_max), sigma(s_max)]%, gamma(g_max),...
 %     kappa(k_max), eta(e_max)] %maximum error parameters
 %% Heatmap RMSE
 crange = [v_min v_max];
+figure();
+heatmap(round(sigma,2),round(beta,2),error,'Colormap',parula,'ColorLimits',crange) % first 2 entries is column, row
+xlabel('\sigma_r');
+ylabel('\beta')
 % For given alpha:
 for a = 1:length(alpha)
     figure();
