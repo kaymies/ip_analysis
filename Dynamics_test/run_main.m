@@ -3,30 +3,30 @@ clear all;
 clc;
 setpath
 %% Load Human Data
-subject_type = 'duarte_old';
+subject_type = 'duarte_young';
 human_struct = load(sprintf('%s.mat',subject_type));
 % f_i = 0.65; f_int = 0.5; f_end = 5.15;
 % input.Frequency = f_i:f_int:f_end;
 input.Frequency = human_struct.Frequency;
 input.FrequencyWindow = 0.2;
 %% Set Model Parameters
-input.TotalMass = 68.7;
-input.TotalHeight = 1.61;  
+input.TotalMass = human_struct.MeanMass_kg;
+input.TotalHeight = human_struct.MeanHeight_m;  
 input.gender = 'M';
-input.plane = 'sgt';
+input.plane = human_struct.Plane;
 input.model = 'DIP';
-input.pose = 'pose_I';
-input.FreqSampKin = 100;
+input.pose = human_struct.Pose;
+input.FreqSampKin = 1000;
 input.trialDuration = 60;
 input.CoordinateFrame = 'relative';
 %% Set Controller Parameters
 %-----% MAKE SURE TO CHANGE SIM FILENAME!!! %-----%
-filename = 'test'; %alpha_beta_sigmar
+filename = 'E6_0p3_0p6'; %alpha_beta_sigmar
 folder_name = 'LQR_relative';
 %-------------------------------------------------%
 input.Controller.alpha = 1e6;
-input.Controller.beta = 2.4;
-input.NoiseRatio = 1.6;
+input.Controller.beta = 0.3;
+input.NoiseRatio = 0.6;
 input.Controller.gamma = 1;
 input.Controller.kappa = 1;
 input.Controller.eta = 1;
@@ -38,12 +38,11 @@ input.PostProc.PlotOn = 0;
 numtrial = 40;
 [data,torques] = compute_ip(input,numtrial);
 
-figure; boxplot(data,input.Frequency)
-xlabel('Frequency [Hz]')
-ylabel('IP (Fraction of CoM)')
-ylim([0 2.5])
-% title('gamma = 1e6, beta = 2, t = 30 sec, freq = 100 Hz, 0.1x noise')
-set(gca,'Fontsize',15);
+% figure; boxplot(data,input.Frequency)
+% xlabel('Frequency [Hz]')
+% ylabel('IP (Fraction of CoM)')
+% ylim([0 2.5])
+% set(gca,'Fontsize',15);
 
 mean_torque_ratio = mean(torques)
 std_torque_ratio = std(torques)
@@ -57,14 +56,19 @@ sim_struct = save_sim_file(input,filename,data,meansim,numtrial,folder_name,stds
 generate_plot(human_struct,sim_struct)
 %% Error
 rmse = sqrt(mean((meansim-human_struct.IPDataAverage).^2))
-
-diffBeta = data(:,5:11) - human_struct.IPDataAverage(5:11);
-meansimdiffBeta = mean(diffBeta, 'omitnan');
-meanBeta = mean(meansimdiffBeta, 'omitnan')
-% CIBeta = 1.96*std(meansimdiffBeta, 'omitnan')/sqrt(7)
-diff = data(:,24:end) - human_struct.IPDataAverage(24:end);
-meansimdiffSigma = mean(diff,'omitnan');
-meanSigma = mean(meansimdiffSigma,'omitnan')
+%% Variance Accounted For (Rika's Method)
+human_data = human_struct.IPDataAverage;
+human_sd = human_struct.StandardDeviation;
+norm_difference = ((meansim - human_data).^2)./human_data.^2;
+norm_variance = (human_sd./human_data).^2;
+vaf = 1 - sum(norm_difference)/sum(norm_variance)
+% diffBeta = data(:,5:11) - human_struct.IPDataAverage(5:11);
+% meansimdiffBeta = mean(diffBeta, 'omitnan');
+% meanBeta = mean(meansimdiffBeta, 'omitnan')
+% % CIBeta = 1.96*std(meansimdiffBeta, 'omitnan')/sqrt(7)
+% diff = data(:,24:end) - human_struct.IPDataAverage(24:end);
+% meansimdiffSigma = mean(diff,'omitnan');
+% meanSigma = mean(meansimdiffSigma,'omitnan')
 %% Plot IP Distribution
 % for j = 1:length(input.Frequency)
 %     figure(3)

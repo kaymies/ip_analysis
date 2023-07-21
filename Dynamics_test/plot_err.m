@@ -3,7 +3,7 @@ clear all;
 clc;
 setpath;
 %% Load Error
-error = load("rmse_young_20230530.mat");
+error = load("subs_rmse_duarte_old_20230705.mat");
 error = error.Error;
 % error = error.root_mean_young(11,:,:);
 % error = reshape(error,[22,25]);

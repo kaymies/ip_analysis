@@ -19,7 +19,7 @@ else
     gender = 'M';
     plane = 'sgt';
     model_type = 'DIP'; % 'SIP','DIP'
-    pose = 'pose_T'; % 'pose_T' 'pose_I'
+    pose = 'pose_I'; % 'pose_T' 'pose_I'
     Fs_Hz = 500;
     t_f = 30;
     coord = 'relative'; % 'relative','spatial'
@@ -82,11 +82,11 @@ if nargin ~=0
     noise_ratio = input.NoiseRatio;
 else
     alpha = 1e6;
-    beta = 0.2;
+    beta = 0.1;
     gamma = 1;
     kappa = 1;
     eta = 1;
-    noise_ratio = 0.1;
+    noise_ratio = 0.9;
     struct_Controller.type = 'LQR'; % designate controller type used here
 end
 switch model_type
@@ -193,6 +193,8 @@ end
         theta = -MLFx./MLFz;
         theta = theta - mean(theta); % detrend
         MLCOP = MLCOP - mean(MLCOP); % detrend
+%         figure(); plot(MLCOP)
+%         figure(); plot(theta)
         cop_ham = MLCOP'.*hamming(length(MLCOP)); % apply Hamming window to CoP data
         theta_ham = theta'.*hamming(length(theta)); % apply Hamming window to the force angle
         for n = 1:length(f) % for all frequencies designated above:

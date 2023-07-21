@@ -4,26 +4,26 @@ close all;
 setpath
 %% Load Data
 % Human Data
-subject_type = 'nonpar_7sub';
+subject_type = 'marta_frt_beam';
 human_struct = load(sprintf('%s.mat',subject_type));
 freq = human_struct.Frequency;
 human_data = human_struct.IPDataAverage;
 human_sd = human_struct.StandardDeviation;
 % Best-Fit Simulation Data
 controller = 'LQR_relative';
-file = 'E4_1p9_3';
+file = 'E6_1p2_0p5';
 folder = fullfile('Data','Simulation',controller);
 addpath(folder);
 sim_struct = load(sprintf('%s.mat',file));
 sim_data = sim_struct.DataWithoutOutliers;
 generate_plot(human_struct,sim_struct)
 %% Variance Accounted For (Rika's Method)
-norm_difference = ((sim_data - human_data).^2)./human_data.^2
-norm_variance = (human_sd./human_data).^2
+norm_difference = ((sim_data - human_data).^2)./human_data.^2;
+norm_variance = (human_sd./human_data).^2;
 vaf = 1 - sum(norm_difference)/sum(norm_variance)
 %%
 g = fittype('a-b*exp(-x/tau)');
-[f0, gof] = fit(freq,human,g,'StartPoint',[[ones(size(freq)), -exp(-freq)]\human; 1])
+[f0, gof] = fit(freq,human,g,'StartPoint',[[ones(size(freq)), -exp(-freq)]\human; 1]);
 xx = linspace(0,8,50);
 plot(freq,human,'o',xx,f0(xx),'r-');
 %% Neglect Outliers

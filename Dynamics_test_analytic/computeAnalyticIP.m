@@ -43,11 +43,7 @@ if nargin ~=0
     plane = input.plane;
     model_type = input.model;
     pose = input.pose;
-%     Fs_Hz = input.FreqSampKin; % sampling frequency
-%     t_f = input.trialDuration;
-%     coord = input.CoordinateFrame;
     f = input.Frequency;
-    freq_window = input.FrequencyWindow;
 else
     TotalMass = 68.5; 
     TotalHeight = 1.66;    
@@ -55,12 +51,8 @@ else
     plane = 'sgt';
     model_type = 'DIP'; % 'SIP','DIP'
     pose = 'pose_T'; % 'pose_T' 'pose_I'
-%     Fs_Hz = 500;
-%     t_f = 30;
-%     coord = 'relative'; % 'relative','spatial'
     f_i = 0.5; f_int = 0.2; f_end = 7.9;
 	f = f_i:f_int:f_end;
-    freq_window = 0.2;
 end
 %% Define Controller
 if nargin ~=0
@@ -75,6 +67,7 @@ if nargin ~=0
     motorNoiseLvL = input.simMotorNoise;
     fpNoiseLvL = input.simSensorNoise;
     delay = input.Controller.param.delay; % 2023-05-18
+    controller_type = struct_Controller.type;
 
 else
     alpha = 1e6;
@@ -87,7 +80,7 @@ else
     motorNoiseLvL = 10;
     fpNoiseLvL = 0;
     delay = 0;
-    struct_Controller.type = 'LQR'; % designate controller type used here
+    controller_type = 'LQR';
 end
 switch model_type
     case 'SIP'
@@ -100,7 +93,7 @@ param.Q = gamma*[kappa 0 0 0;
                  0 0 eta 0;
                  0 0 0 1/eta];
 struct_Controller.param = param;
-controller_type = 'LQR';
+
 
 addpath([pwd,'/AutoDerived/',pose,'/',model_type,'/',gender,'_',plane]);
 
@@ -135,7 +128,7 @@ D_1 = [1 0];
 
 J_CoM_x = J_CoM_eq(1,:);
 dJ_CoM_x = DJ_CoM_eq(1,:);
-J_2 = -TotalMass*[dJ_CoM_x J_CoM_x];
+J_2 = -(m_1+m_2)*[dJ_CoM_x J_CoM_x];
 C_2 = J_2*A_lin;
 D_2 = J_2*B_lin;
 C_lin = [C_1; C_2]; D_lin = [D_1; D_2];
