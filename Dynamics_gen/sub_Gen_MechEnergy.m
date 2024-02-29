@@ -6,11 +6,11 @@ KE_Trunk = KE_trans(Trunk.m, SE2_O_Trunkc.p, q, Dq) +  1/2*Trunk.j*(Dq_A+Dq_K+Dq
 KE_Head  = KE_trans(Head.m, SE2_O_Headc.p, q, Dq) +  1/2*Head.j*(Dq_A+Dq_K+Dq_H+Dq_NE)^2;
 KE_LUarm = KE_trans(Upperarm.m, SE2_O_LUarmc.p, q, Dq) +  1/2*Upperarm.j*(Dq_A+Dq_K+Dq_H+Dq_LS)^2;
 KE_LFarm = KE_trans(Forearm.m, SE2_O_LFarmc.p, q, Dq) +  1/2*Forearm.j*(Dq_A+Dq_K+Dq_H+Dq_LS+Dq_LE)^2;
-KE_LHand = KE_trans(Forearm.m, SE2_O_LHandc.p, q, Dq) +  1/2*Forearm.j*(Dq_A+Dq_K+Dq_H+Dq_LS+Dq_LE+Dq_LW)^2;
+KE_LHand = KE_trans(Hand.m, SE2_O_LHandc.p, q, Dq) +  1/2*Hand.j*(Dq_A+Dq_K+Dq_H+Dq_LS+Dq_LE+Dq_LW)^2;
 
 KE_RUarm = KE_trans(Upperarm.m, SE2_O_RUarmc.p, q, Dq) +  1/2*Upperarm.j*(Dq_A+Dq_K+Dq_H+Dq_RS)^2;
 KE_RFarm = KE_trans(Forearm.m, SE2_O_RFarmc.p, q, Dq) +  1/2*Forearm.j*(Dq_A+Dq_K+Dq_H+Dq_RS+Dq_RE)^2;
-KE_RHand = KE_trans(Forearm.m, SE2_O_RHandc.p, q, Dq) +  1/2*Forearm.j*(Dq_A+Dq_K+Dq_H+Dq_RS+Dq_RE+Dq_RW)^2;
+KE_RHand = KE_trans(Hand.m, SE2_O_RHandc.p, q, Dq) +  1/2*Hand.j*(Dq_A+Dq_K+Dq_H+Dq_RS+Dq_RE+Dq_RW)^2;
 
 %% Compute Total Kinetic Energy
 KE_tot = KE_Shank*2+KE_Thigh*2+KE_Trunk+KE_Head+KE_LUarm+KE_LFarm+KE_LHand + KE_RUarm+KE_RFarm+KE_RHand;

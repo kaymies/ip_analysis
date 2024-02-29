@@ -7,11 +7,10 @@ set(groot, 'defaultAxesTickLabelInterpreter','latex');
 set(groot, 'defaultLegendInterpreter','latex');
 set(groot,'defaultTextInterpreter','latex');
 %% Load Human Data
-subject_type = 'duarte_young';
+subject_type = 'duarte_old';
 human_struct = load(sprintf('%s.mat',subject_type));
-% f_i = 0.65; f_int = 0.5; f_end = 5.15;
-% input.Frequency = f_i:f_int:f_end;
-input.Frequency = human_struct.Frequency;
+input.method = 'cpsd';
+input.Frequency = eval(sprintf('human_struct.Frequency_%s',input.method));
 %% Set Model Parameters
 input.TotalMass = human_struct.MeanMass_kg;
 input.TotalHeight = human_struct.MeanHeight_m;  
@@ -25,8 +24,8 @@ filename = 'test'; %alpha_beta_sigmar
 folder_name = 'LQR_relative';
 %-------------------------------------------------%
 input.Controller.alpha = 1e6;
-input.Controller.beta = 0.3;
-input.NoiseRatio = 0.6;
+input.Controller.beta = 1;
+input.NoiseRatio = 1;
 input.Controller.gamma = 1;
 input.Controller.kappa = 1;
 input.Controller.eta = 1;
@@ -62,13 +61,18 @@ input.Controller.param.delay =0; % 2023-05-18
 %         struct('type','LQR',...
 %                'param',controller_param)...
 %     );
-
+%%
 figure;
-beta = 0.2; sigma = 0.01;
+beta = 0.3; sigma = 0.6;
 input.Controller.beta = beta;
 input.NoiseRatio = sigma;
 [IP_ratio_a] = computeAnalyticIP(input);
 hold on;p_ankle = plot(input.Frequency,IP_ratio_a,'Linewidth',1.2);
+input.TotalHeight = 1.68;  
+input.TotalMass = 62.6; 
+[IP_ratio_a] = computeAnalyticIP(input);
+hold on;p_ankle = plot(input.Frequency,IP_ratio_a,'Linewidth',1.2);
+
 beta = 0.3; sigma = 0.8;
 input.Controller.beta = beta;
 input.NoiseRatio = sigma;
@@ -103,21 +107,25 @@ title('LQR model: effect of $\sigma_r$');
 
 
 params.simMotorNoiseRatio = motorNoiseRatio;
-
+%%
 figure;
-for beta = flip([0.1,0.3,0.5,0.7,1,2,3,10])
-params.Controller.param.R = alpha*diag([beta,1/beta]);
-[IP_ratio_a] = computeAnalyticIP(params);
-hold on;p_ankle = plot(f_a,IP_ratio_a,'Linewidth',1.2);
+for beta = flip(0.1:0.01:0.2)
+    input.Controller.beta = beta;
+    [IP_ratio_a] = computeAnalyticIP(input);
+    hold on;p_ankle = plot(input.Frequency,IP_ratio_a,'Linewidth',4);
 end
 yline(0,'k--');
 yline(1,'k--');
-legend('10','3','2','1','0.7','0.5','0.3','0.1')
+% legend('3','2','1','0.5','0.3','0.1','0.01')
 ylim([0,3])
 xlim([0,8])
 xlabel('Frequency (Hz)');
-ylabel('$IP_z/CoM$');
-title('LQR model: effect of $\beta$');
+ylabel('IP as a Fraction of CoM');
+title('LQR model: effect of \beta');
+mycolors = flip(parula(11));
+ax = gca; 
+ax.ColorOrder = mycolors;
+improvePlot;
 %%
 beta = flip([0.1,0.3,0.5,0.7,1,2,3,10]);
 sigma = flip([0,0.3,0.5,0.7,1,2,10]);

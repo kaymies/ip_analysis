@@ -3,49 +3,15 @@ clear all;
 clc;
 setpath;
 %% Load Error
-filename = 'rmse_duarte_old37_20230720';
+filename = 'rmse_duarte_old_finer_subs_20240212';
 error = load(sprintf('%s.mat',filename));
 beta = error.Parameters.beta;
 sigma = error.Parameters.sigma_r;
-% numsubs = 38;
-% numsubs = error.NumSubjects*3;
+numsubs = error.NumSubjects;
 error = error.Error;
 % rmse_avb = root_mean_nonpar7sub_lqr_spatial2; %each 2D array is alpha v beta, for given sigma
 % rmse_avs = permute(rmse_avb,[1 3 2]); %each 2D array is alpha v sigma, for given beta
 % rmse_bvs = permute(rmse_avb,[2 3 1]); %each 2D array is beta v sigma, for given alpha
-%% For Outlier Elders:
-% outliers = [1 7 8 9 16 20 24 26 28 35 36 37];
-% figure;
-% for o = 1:length(outliers)
-%     filename = sprintf('rmse_duarte_old%d_20230720',outliers(o));
-%     error = load(sprintf('%s.mat',filename));
-%     beta = error.Parameters.beta;
-%     sigma = error.Parameters.sigma_r;
-%     error = error.Error;
-%     crange = [0.1425 0.7553];
-%     subplot(3,4,o)
-%     heatmap(round(sigma,2),round(flip(beta),2),abs(flip(error)),'Colormap',parula,'ColorLimits',crange) % first 2 entries is column, row
-%     xlabel('\sigma_r');
-%     ylabel('\beta')
-%     title(sprintf('Old Sub %d',outliers(o)))
-% end
-%% For Multiple Subjects:
-% best_betas = zeros(numsubs,1);
-% best_sigmas = zeros(numsubs,1);
-% for i = 1:numsubs
-%     error_sub = squeeze(error(i,:,:));
-%     [v_min,loc_min] = min(abs(error_sub(:)));
-%     [b_min,s_min] = ind2sub(size(error_sub),loc_min);
-%     best_betas(i) = beta(b_min); best_sigmas(i) = sigma(s_min);
-% end
-% params.BestBetas = best_betas;
-% params.BestSigmas = best_sigmas;
-% filename = 'trials_bestparams_duarte_young_20230706.mat';
-% folder = fullfile('Data','BestParams'); addpath(folder);
-% file = sprintf('%s.mat',filename);
-% 
-% % Save the struct to a file
-% save(fullfile(folder,file), '-struct', 'params');
 %% Find Minimum Error
 [v_min,loc_min] = min(abs(error(:)))
 [b_min,s_min] = ind2sub(size(error),loc_min);
@@ -62,11 +28,117 @@ best_params = [beta(b_min), sigma(s_min)]%, gamma(g_min),...
 worst_params = [beta(b_max), sigma(s_max)]%, gamma(g_max),...
 %     kappa(k_max), eta(e_max)] %maximum error parameters
 %% Heatmap RMSE
-crange = [v_min v_max];
 figure();
-heatmap(round(sigma,2),round(flip(beta),2),abs(flip(error)),'Colormap',parula,'ColorLimits',crange) % first 2 entries is column, row
+crange = [v_min 0.5];
+h = heatmap(round(sigma,2),flip(round(beta,2)),flip(abs(error),1),'Colormap',parula,'ColorLimits',crange); % first 2 entries is column, row
+% heatmap(round(sigma,2),round(flip(beta),2),abs(flip(error)),'Colormap',parula,'ColorLimits',crange) % first 2 entries is column, row
+h.YDisplayLabels = {'3.0','','2.8','','2.6','','2.4','','2.2','','2.0','','1.8','','1.6','','1.4','','1.2','','1.0','','0.8','','0.6','','0.4','','0.2','','0.05','0.01'};
+h.XDisplayLabels = {'0.01','0.05','','0.2','','0.4','','0.6','','0.8','','1.0','','1.2','','1.4','','1.6','','1.8','','2.0','','2.2','','2.4','','2.6','','2.8','','3.0','5.0','10.0','15.0','20.0'};
 xlabel('\sigma_r');
 ylabel('\beta')
+improvePlot;
+%% For Outliers:
+outliers = [6 9 19 46 61];
+figure;
+crange = [0.06 0.25];
+n = 1;
+for i = 1:12
+    if ismember(i,outliers)
+    else
+        subplot(3,4,n)
+        heatmap(round(sigma,2),round(flip(beta),2),abs(flip(squeeze(error(i,:,:)))),'Colormap',parula,'ColorLimits',crange) % first 2 entries is column, row
+        xlabel('\sigma_r');
+        ylabel('\beta')
+        title(sprintf('Young Sub %d',i))
+        n = n + 1;
+    end
+end
+figure();
+n = 1;
+for i = 13:24
+    if ismember(i,outliers)
+    else
+        subplot(3,4,n)
+        heatmap(round(sigma,2),round(flip(beta),2),abs(flip(squeeze(error(i,:,:)))),'Colormap',parula,'ColorLimits',crange) % first 2 entries is column, row
+        xlabel('\sigma_r');
+        ylabel('\beta')
+        title(sprintf('Young Sub %d',i))
+        n = n + 1;
+    end
+end
+figure();
+n = 1;
+for i = 25:36
+    if ismember(i,outliers)
+    else
+        subplot(3,4,n)
+        heatmap(round(sigma,2),round(flip(beta),2),abs(flip(squeeze(error(i,:,:)))),'Colormap',parula,'ColorLimits',crange) % first 2 entries is column, row
+        xlabel('\sigma_r');
+        ylabel('\beta')
+        title(sprintf('Young Sub %d',i))
+        n = n + 1;
+    end
+end
+figure();
+n = 1;
+for i = 37:48
+    if ismember(i,outliers)
+    else
+        subplot(3,4,n)
+        heatmap(round(sigma,2),round(flip(beta),2),abs(flip(squeeze(error(i,:,:)))),'Colormap',parula,'ColorLimits',crange) % first 2 entries is column, row
+        xlabel('\sigma_r');
+        ylabel('\beta')
+        title(sprintf('Young Sub %d',i))
+        n = n + 1;
+    end
+end
+figure();
+n = 1;
+for i = 49:60
+    if ismember(i,outliers)
+    else
+        subplot(3,4,n)
+        heatmap(round(sigma,2),round(flip(beta),2),abs(flip(squeeze(error(i,:,:)))),'Colormap',parula,'ColorLimits',crange) % first 2 entries is column, row
+        xlabel('\sigma_r');
+        ylabel('\beta')
+        title(sprintf('Young Sub %d',i))
+        n = n + 1;
+    end
+end
+figure();
+n = 1;
+for i = 61:65
+    if ismember(i,outliers)
+    else
+        subplot(2,3,n)
+        heatmap(round(sigma,2),round(flip(beta),2),abs(flip(squeeze(error(i,:,:)))),'Colormap',parula,'ColorLimits',crange) % first 2 entries is column, row
+        xlabel('\sigma_r');
+        ylabel('\beta')
+        title(sprintf('Young Sub %d',i))
+        n = n + 1;
+    end
+end
+%% For Multiple Subjects:
+best_betas = zeros(numsubs,1);
+best_sigmas = zeros(numsubs,1);
+for i = 1:numsubs
+    error_sub = squeeze(error(i,:,:));
+    [v_min,loc_min] = min(abs(error_sub(:)));
+    [b_min,s_min] = ind2sub(size(error_sub),loc_min);
+    best_betas(i) = beta(b_min); best_sigmas(i) = sigma(s_min);
+end
+params.BestBetas = best_betas;
+params.BestSigmas = best_sigmas;
+filename = 'bestparams_duarte_old_finer_subs_20240212';
+folder = fullfile('Data','BestParams'); addpath(folder);
+file = sprintf('%s.mat',filename);
+
+% Save the struct to a file
+save(fullfile(folder,file), '-struct', 'params');
+
+
+
+% crange = [0.1029 0.6585];
 % %% Heatmap Difference
 % crange = [0 max(abs(v_min),abs(v_max))];
 % figure();

@@ -30,17 +30,20 @@ field17 = 'IP'; value17 = zIP_young_bpf;
 % field12 = 'ForceVert'; value12 = F_vert_N_nonparetic;
 % field13 = 'CoPAP'; value13 = CoP_ap_m_nonparetic;
 field19 = 'Pose'; value19 = 'pose_I';
-duarte_old_fitted = struct(field1,value1,field5,value5,field2,value2,field9,value9,...
+duarte_young = struct(field1,value1,field5,value5,field2,value2,field9,value9,...
     field10,value10,field3,value3,field4,value4,...
     field17,value17,field19,value19);
 save(folder, '-struct', filename);
 %% Updating Data File
-filename = 'duarte_old_fitted';
-duarte_old_fitted = load(sprintf('%s.mat',filename));
+filename = 'duarte_young';
+duarte_young = load(sprintf('%s.mat',filename));
 
-duarte_old_fitted.IP = IP_reshape;
-% duarte_old_fitted.IPAveSubject = squeeze(mean(duarte_old_fitted.IP,2));
-% duarte_old_fitted.IPDataAverage = mean(duarte_old_fitted.IPAveSubject);
+duarte_young.Frequency_bpf = Frequency;
+duarte_young.IP_bpf = IP;
+% duarte_old.Frequency_cpsd = freq_Hz_cpsd(6:82);
+% % duarte_old_fitted.IP = IP_reshape;
+duarte_young.IPAveSubject_bpf = IPAveSubject;
+duarte_young.IPDataAverage_bpf = IPDataAverage;
 % duarte_old_fitted.Frequency = freq_Hz_bpf;
 % duarte_young.MeanHeight_m = MeanHeight_m;
 % duarte_young.Plane = 'sgt';

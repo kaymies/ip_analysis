@@ -3,12 +3,16 @@ clear all;
 clc;
 setpath
 %% Load Human Data
-subject_type = 'duarte_young';
+subject_type = 'marta_sgt_ground';
 human_struct = load(sprintf('%s.mat',subject_type));
-% f_i = 0.65; f_int = 0.5; f_end = 5.15;
-% input.Frequency = f_i:f_int:f_end;
-input.Frequency = human_struct.Frequency;
+input.method = 'bpf'; %bpf or cpsd
+% input.Frequency = eval(sprintf('human_struct.Frequency_%s',input.method));
+input.Frequency = eval(sprintf('human_struct.Frequency'));
 input.FrequencyWindow = 0.2;
+% human_mean = eval(sprintf('human_struct.IPDataAverage_%s',input.method));
+human_mean = eval(sprintf('human_struct.IPDataAverage'));
+% human_data_sub = eval(sprintf('human_struct.IPAveSubject_%s',input.method));
+% human_sd = std(human_data_sub);
 %% Set Model Parameters
 input.TotalMass = human_struct.MeanMass_kg;
 input.TotalHeight = human_struct.MeanHeight_m;  
@@ -16,17 +20,17 @@ input.gender = 'M';
 input.plane = human_struct.Plane;
 input.model = 'DIP';
 input.pose = human_struct.Pose;
-input.FreqSampKin = 1000;
-input.trialDuration = 60;
+input.FreqSampKin = 500;
+input.trialDuration = 24;
 input.CoordinateFrame = 'relative';
 %% Set Controller Parameters
 %-----% MAKE SURE TO CHANGE SIM FILENAME!!! %-----%
-filename = 'E6_0p3_0p6'; %alpha_beta_sigmar
+filename = 'test'; %alpha_beta_sigmar
 folder_name = 'LQR_relative';
 %-------------------------------------------------%
 input.Controller.alpha = 1e6;
 input.Controller.beta = 0.3;
-input.NoiseRatio = 0.6;
+input.NoiseRatio = 1.5;
 input.Controller.gamma = 1;
 input.Controller.kappa = 1;
 input.Controller.eta = 1;
@@ -36,7 +40,7 @@ input.PostProc.AnimOn = 0;
 input.PostProc.PlotOn = 0;
 %% Run Simulation for n trials
 numtrial = 40;
-[data,torques] = compute_ip(input,numtrial);
+[data,torques,f] = compute_ip(input,numtrial);
 
 % figure; boxplot(data,input.Frequency)
 % xlabel('Frequency [Hz]')
@@ -53,15 +57,22 @@ stdsim = std(data,'omitnan');
 %% Save File:
 sim_struct = save_sim_file(input,filename,data,meansim,numtrial,folder_name,stdsim);
 %% Plot human vs. simulation
-generate_plot(human_struct,sim_struct)
+generate_plot(input.Frequency,human_mean,[],meansim,stdsim)
+% generate_plot(input.Frequency,human_mean,human_sd,meansim,stdsim)
 %% Error
-rmse = sqrt(mean((meansim-human_struct.IPDataAverage).^2))
+rmse = sqrt(mean((meansim-human_mean).^2))
 %% Variance Accounted For (Rika's Method)
-human_data = human_struct.IPDataAverage;
-human_sd = human_struct.StandardDeviation;
-norm_difference = ((meansim - human_data).^2)./human_data.^2;
-norm_variance = (human_sd./human_data).^2;
+norm_difference = ((meansim - human_mean).^2);%./human_mean.^2;
+% norm_variance = (human_sd).^2;
+norm_variance = (human_mean - mean(human_mean)).^2;
 vaf = 1 - sum(norm_difference)/sum(norm_variance)
+% vaf = zeros(77,1);
+% for i = 1:77
+%     diff = (human_data_sub(:,i) - meansim(i)).^2;
+%     var = (human_data_sub(:,i) - human_mean(i)).^2;
+%     vaf(i) = 1 - sum(diff)/sum(var);
+% end
+% mean_vaf = mean(vaf)
 % diffBeta = data(:,5:11) - human_struct.IPDataAverage(5:11);
 % meansimdiffBeta = mean(diffBeta, 'omitnan');
 % meanBeta = mean(meansimdiffBeta, 'omitnan')

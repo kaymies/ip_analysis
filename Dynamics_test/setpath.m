@@ -10,3 +10,7 @@ addpath([pwd '/Data/Human'])
 addpath([pwd '/Data/Simulation'])
 addpath([pwd '/Visualization'])
 addpath([pwd '/Data/Error'])
+addpath([pwd '/Data/Simulation/LQR_relative_poseT'])
+addpath([pwd '/Data/Eigenstructure'])
+addpath([pwd '/Data/BestParams'])
+

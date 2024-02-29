@@ -1,4 +1,4 @@
-function [IP_ratio,torque_rms] = main_ip(input)
+function [IP_ratio,torque_rms,f] = main_ip(input)
 %% Model Parameters and Set Up
 setpath
 if nargin ~=0
@@ -13,19 +13,21 @@ if nargin ~=0
     coord = input.CoordinateFrame;
     f = input.Frequency;
     freq_window = input.FrequencyWindow;
+    method = input.method;
 else    
-    TotalMass = 68.5; 
-    TotalHeight = 1.66;    
+    TotalMass = 63; 
+    TotalHeight = 1.68;    
     gender = 'M';
     plane = 'sgt';
     model_type = 'DIP'; % 'SIP','DIP'
     pose = 'pose_I'; % 'pose_T' 'pose_I'
-    Fs_Hz = 500;
-    t_f = 30;
+    Fs_Hz = 1000;
+    t_f = 60;
     coord = 'relative'; % 'relative','spatial'
     f_i = 0.5; f_int = 0.2; f_end = 7.9;
 	f = f_i:f_int:f_end;
     freq_window = 0.2;
+    method = 'bpf';
 end
 model_param = [TotalMass; TotalHeight];
 addpath([pwd,'/AutoDerived/',pose,'/',model_type,'/',gender,'_',plane]);
@@ -82,11 +84,11 @@ if nargin ~=0
     noise_ratio = input.NoiseRatio;
 else
     alpha = 1e6;
-    beta = 0.1;
+    beta = 0.19;
     gamma = 1;
     kappa = 1;
     eta = 1;
-    noise_ratio = 0.9;
+    noise_ratio = 0.3;
     struct_Controller.type = 'LQR'; % designate controller type used here
 end
 switch model_type
@@ -187,24 +189,54 @@ end
             MLFz(:,i) = y{i}.Fz;
         end
 
-        % Obtain IP at different frequencies (inspired by Marta's code)
-        f = f - freq_window/2;
-        IP = zeros(1,length(f)); % IP
-        theta = -MLFx./MLFz;
-        theta = theta - mean(theta); % detrend
-        MLCOP = MLCOP - mean(MLCOP); % detrend
-%         figure(); plot(MLCOP)
-%         figure(); plot(theta)
-        cop_ham = MLCOP'.*hamming(length(MLCOP)); % apply Hamming window to CoP data
-        theta_ham = theta'.*hamming(length(theta)); % apply Hamming window to the force angle
-        for n = 1:length(f) % for all frequencies designated above:
-            [B,A] = butter(2,[f(n) f(n)+freq_window]/(1/dt/2)); % define the Butterworth filter
-            COP_f = filtfilt(B,A,cop_ham); % apply filter to CoP data
-            theta_f = filtfilt(B,A,theta_ham); % apply filter to force angle data
-            [coeff,~,~,~,~,~] = pca([COP_f theta_f]); % PCA
-            IP(n) = coeff(1,1)/coeff(2,1); % compute IP and store
+        switch method
+            case 'cpsd'
+                window_size = 2^9;
+                nfft = window_size*2;
+                noverlap = 0.5*window_size;
+                %y = [detrend(COP,0)' detrend(theta,0)'];
+                theta = -MLFx./MLFz;
+                y = [detrend(MLCOP,1)' detrend(theta,1)']; % 2023-04-06 linear detrend
+                                                          % better for some cases 
+                                                          % (e.g. simulation of integrated white noise)
+                ds_f = Fs_Hz/100;
+                y_ds = [decimate(y(:,1),ds_f)';decimate(y(:,2),ds_f)']';    
+                y = y_ds;
+                [Gyy, f] = cpsd(y,y,hamming(window_size),noverlap,nfft,'mimo',100);
+                
+                IP_ratio = zeros(window_size+1,1);
+                for i = 1:(window_size+1)
+                    [V,D] = eig(squeeze(real(Gyy(i,:,:))));
+                    [~,i_max] = max(diag(abs(D)));
+                    IP_ratio(i) = V(1,i_max)/V(2,i_max) / mean(COM_z);
+                end
+                f_new = f(f<8);
+                IP_ratio_new = IP_ratio(f<8);
+                f = f_new(f_new>0.4);
+                IP_ratio_new = IP_ratio_new(f_new>0.4);
+                IP_ratio = IP_ratio_new;
+
+            case 'bpf'
+        
+                %% Kaymie's code
+                % Obtain IP at different frequencies (inspired by Marta's code)
+                f = f - freq_window/2;
+                IP = zeros(1,length(f)); % IP
+                theta = -MLFx./MLFz;
+                %theta = atan2(Fz,Fxy); % Basically gives the same result as above after subtracting the mean (Rika: 2021-05-27)
+                theta = theta - mean(theta);
+                cop_ham = detrend(MLCOP,0)'.*hann(length(MLCOP)); % apply Hamming window to CoP data
+                theta_ham = theta'.*hann(length(theta)); % apply Hamming window to the force angle
+                for n = 1:length(f) % for all frequencies designated above:
+                    [B,A] = butter(2,[f(n) f(n)+freq_window]/(1/dt/2)); % define the Butterworth filter
+                    COP_f = filtfilt(B,A,cop_ham); % apply filter to CoP data
+                    theta_f = filtfilt(B,A,theta_ham); % apply filter to force angle data
+                    [coeff,~,~,~,~,~] = pca([COP_f theta_f]); % PCA
+                    IP(n) = coeff(1,1)/coeff(2,1); % compute IP and store
+                end
+                IP_ratio = IP/mean(COM_z);
+                f = f+0.1;
         end
-        IP_ratio = IP/mean(COM_z);
     %     mean(COM_z);
 
         torque_rms = [rms(torque(1,:)), rms(torque(2,:)), rms(torque(1,:))/rms(torque(2,:))];
@@ -253,7 +285,7 @@ end
             end
         % Plot a scatter plot of IP frequency response
         figure(3);  
-            scatter(f+0.1, IP_ratio,30,'k','filled')      
+            scatter(f, IP_ratio,30,'k','filled')      
             ylabel('IP/CoM')
             xlabel('Frequency [Hz]')
             ylim([0 2.5])
@@ -314,9 +346,10 @@ end
 %             B_a_norm = norm(B_a)
 %             K_lqr = [4*K_lqr(1:2,1:2), 2*K_lqr(1:2,3:end)]; % nx stiffness/damping matrix
             % compute open-loop poles
-            [~,D_op] = eig(A_lin); % linearized system open loop eigenstructure
+            [V_op,D_op] = eig(A_lin); % linearized system open loop eigenstructure
             % compute closed-loop poles
-            [~,D_cl] = eig(A_lin-B_lin*K_lqr);
+            A_cl = A_lin-B_lin*K_lqr;
+            [V_cl,D_cl] = eig(A_cl);
             if isPlotOn
                 % plot open/closed loop poles
                 figure(4);

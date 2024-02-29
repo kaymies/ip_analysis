@@ -30,7 +30,7 @@ q_NE = 0; Dq_NE = 0; % neck
 
 % T-pose (arms out to the side)
 % %q_RS = pi/2; q_LS = -pi/2; % Rika 2020-12-10: Marta's data has arms in abducted position
-q_RS = -pi/2; q_LS = pi/2; % Rika 2020-12-13: Corrected angles
+% q_RS = -pi/2; q_LS = pi/2; % Rika 2020-12-13: Corrected angles
 %% Actuated joint : assuming torque-actuated model
 q_act = q;
 %% Gen.Positions, Gen.Velocities, Gen.Accelerations

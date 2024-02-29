@@ -1,4 +1,4 @@
-young = load("duarte_old.mat");
+young = load("duarte_young.mat");
 youngfit = load('duarte_old_fitted.mat');
 numSubplots = 38;
 gridRows = 5;

@@ -1,21 +1,20 @@
-function [] = generate_plot(human,sim)
+function [] = generate_plot(frequency,human_mean,human_sd,sim_mean,sim_sd)
 %% Load Data
 % Human Data
 setpath;
-human_struct = human;
-% Best-Fit Simulation Data
-sim_struct = sim;
 %% Plot human vs. simulation
 figure();
-errorbar(human_struct.Frequency,human_struct.IPDataAverage,human_struct.StandardDeviation,'x')
+errorbar(frequency,human_mean,human_sd,'x')
+% plot(frequency,human_mean,'x')
 hold on
-errorbar(sim_struct.Frequency,sim_struct.DataWithoutOutliers,sim_struct.StandardDeviation,'o')
+errorbar(frequency,sim_mean,sim_sd,'o')
 % plot(sim_struct.Frequency,sim_struct.DataWithoutOutliers)
-legend('human', 'simdata')
-xlabel('Frequency [Hz]')
-ylabel('IP (Fraction of CoM)')
-xlim([0 6.3])
+legend('Human Data', 'Simulated Data')
+xlabel('Frequency (Hz)')
+ylabel('Intersection Point Height (Normalized by CoM)')
+xlim([0 8])
 ylim([0 3.5])
+improvePlot;
 end
 %% Plot with standard deviation
 % old = load('duarte_old.mat');
@@ -67,24 +66,26 @@ end
 % 
 % figure;
 % % Sagittal Side-by-Side
-% human_struct = load('gruben2019.mat');
-% sim_struct = load('E6_0p3_0p9.mat');
-% subplot(2, 3, 1);
-% plot(human_struct.Frequency, human_struct.IPDataAverage,'x');
-% hold on
-% errorbar(sim_struct.Frequency,sim_struct.DataWithoutOutliers,sim_struct.StandardDeviation,'o')
-% xlabel('Frequency [Hz]')
-% ylabel({'Intersection Point Height';'(Normalized by CoM)'})
-% xlim([0 8])
-% ylim([0 2.5])
-% % title('Plot 1');
+% % human_struct = load('gruben2019.mat');
+% % sim_struct = load('E6_0p3_0p9.mat');
+% % subplot(2, 2, 1);
+% % plot(human_struct.Frequency, human_struct.IPDataAverage,'x');
+% % hold on
+% % errorbar(sim_struct.Frequency,sim_struct.DataWithoutOutliers,sim_struct.StandardDeviation,'o')
+% % xlabel('Frequency [Hz]')
+% % ylabel({'Intersection Point Height';'(Normalized by CoM)'})
+% % xlim([0 8])
+% % ylim([0 2.5])
+% % % title('Plot 1');
 % 
 % % Sagittal Ground
 % human_struct = load('marta_sgt_ground.mat');
 % sim_struct = load('E6_0p3_1p6.mat');
-% subplot(2, 3, 2);
-% plot(human_struct.Frequency, human_struct.IPDataAverage,'x');
+% sim_struct_smalla = load('En4_1p3_0p6');
+% subplot(2, 2, 1);
+% % errorbar(sim_struct_smalla.Frequency,sim_struct_smalla.DataWithoutOutliers,sim_struct_smalla.StandardDeviation,'o')
 % hold on
+% plot(human_struct.Frequency, human_struct.IPDataAverage,'x');
 % errorbar(sim_struct.Frequency,sim_struct.DataWithoutOutliers,sim_struct.StandardDeviation,'o')
 % xlabel('Frequency [Hz]')
 % ylabel({'Intersection Point Height';'(Normalized by CoM)'})
@@ -95,9 +96,11 @@ end
 % % Sagittal Beam
 % human_struct = load('marta_sgt_beam.mat');
 % sim_struct = load('E6_0p2_1p1.mat');
-% subplot(2, 3, 3);
-% plot(human_struct.Frequency, human_struct.IPDataAverage,'x');
+% sim_struct_smalla = load('En4_1p3_0p6');
+% subplot(2, 2, 2);
+% % errorbar(sim_struct_smalla.Frequency,sim_struct_smalla.DataWithoutOutliers,sim_struct_smalla.StandardDeviation,'o')
 % hold on
+% plot(human_struct.Frequency, human_struct.IPDataAverage,'x');
 % errorbar(sim_struct.Frequency,sim_struct.DataWithoutOutliers,sim_struct.StandardDeviation,'o')
 % xlabel('Frequency [Hz]')
 % ylabel({'Intersection Point Height';'(Normalized by CoM)'})
@@ -108,9 +111,11 @@ end
 % % Frontal Ground
 % human_struct = load('marta_frt_ground.mat');
 % sim_struct = load('E6_0p2_0p01.mat');
-% subplot(2, 3, 5);
-% plot(human_struct.Frequency, human_struct.IPDataAverage,'x');
+% sim_struct_smalla = load('En4_2p3_0p4');
+% subplot(2, 2, 3);
+% % errorbar(sim_struct_smalla.Frequency,sim_struct_smalla.DataWithoutOutliers,sim_struct_smalla.StandardDeviation,'o')
 % hold on
+% plot(human_struct.Frequency, human_struct.IPDataAverage,'x');
 % errorbar(sim_struct.Frequency,sim_struct.DataWithoutOutliers,sim_struct.StandardDeviation,'o')
 % xlabel('Frequency [Hz]')
 % ylabel({'Intersection Point Height';'(Normalized by CoM)'})
@@ -119,14 +124,15 @@ end
 % % title('Plot 4');
 % 
 % % Frontal Beam
-% subplot(2, 3, 6);
+% subplot(2, 2, 4);
 % human_struct = load('marta_frt_beam.mat');
 % sim_struct = load('E6_1p2_0p5.mat');
-% plot(human_struct.Frequency, human_struct.IPDataAverage,'x');
+% sim_struct_smalla = load('En4_3_0p1');
+% % errorbar(sim_struct_smalla.Frequency,sim_struct_smalla.DataWithoutOutliers,sim_struct_smalla.StandardDeviation,'o')
 % hold on
+% plot(human_struct.Frequency, human_struct.IPDataAverage,'x');
 % errorbar(sim_struct.Frequency,sim_struct.DataWithoutOutliers,sim_struct.StandardDeviation,'o')
-% 
-% legend('human', 'simdata')
+% legend('Human Data', 'Best Fit Simulation Data')
 % xlabel('Frequency [Hz]')
 % ylabel({'Intersection Point Height';'(Normalized by CoM)'})
 % xlim([0 8])

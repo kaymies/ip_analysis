@@ -1,8 +1,8 @@
-function [ip,torques] = compute_ip(input,num_trial)
+function [ip,torques,f] = compute_ip(input,num_trial)
     ip = zeros(num_trial,length(input.Frequency));
     torques = zeros(num_trial,3);
     for i = 1:num_trial
-        [ip(i,:), torques(i,:)] = main_ip(input);
+        [ip(i,:), torques(i,:),f] = main_ip(input);
         if isnan(ip(i,1)) % if any part of the simulation resulted in numerical instabilties, just skip
             ip = NaN(num_trial,length(input.Frequency));
             break
